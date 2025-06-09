@@ -1,0 +1,5 @@
+module SummaChare {
+  chare SummaChare {
+    entry SummaChare(int start_gru, int num_gru, std::string config_file, std::string master_file, std::string output_file_suffix);
+  };
+}

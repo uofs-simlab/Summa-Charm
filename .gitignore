@@ -1,0 +1,80 @@
+# Build artifacts
+build/
+*.o
+*.so
+*.a
+*.mod
+*.exe
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+
+# Charm++ generated files
+*.decl.h
+*.def.h
+charmrun
+*.sts
+*.sum
+*.log
+
+# Fortran modules and objects
+*.mod
+*.smod
+
+# Output files
+out.txt
+*.out
+*.nc
+*.txt
+logs/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Backup files
+*.bak
+*.backup
+
+# Documentation build
+docs/_build/
+docs/html/
+docs/latex/
+
+# Python cache (if any Python scripts)
+__pycache__/
+*.pyc
+*.pyo
+
+# Editor files
+*.vim
+*.emacs
+
+# Log files
+*.log
+logs/
+
+# Data files (typically large)
+*.dat
+*.bin
+data/
+
+# Configuration files with sensitive information
+config_local.json
+settings_local.json

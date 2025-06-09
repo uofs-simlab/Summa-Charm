@@ -1,0 +1,11 @@
+mainmodule example {
+  include "helper.h";
+  
+  mainchare Main {
+    entry Main(CkArgMsg* m);
+  };
+
+  chare Worker {
+    entry Worker(Helper h);
+  };
+};

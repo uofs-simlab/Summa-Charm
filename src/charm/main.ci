@@ -1,0 +1,8 @@
+mainmodule mainChare {
+  extern module SummaChare;
+  
+  mainchare Main {
+    entry Main(CkArgMsg *m);
+    entry void done();
+  };
+};

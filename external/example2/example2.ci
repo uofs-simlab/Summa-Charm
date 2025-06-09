@@ -1,0 +1,17 @@
+mainmodule example2 {
+  include "helper.h";
+  
+  mainchare Main {
+    entry Main(CkArgMsg* m);
+  };
+
+  chare Worker {
+    entry Worker(Helper h);
+    entry void processHelper(Helper h);
+  };
+  
+  chare Coordinator {
+    entry Coordinator(Helper h, int numWorkers);
+    entry void receiveResult(int workerId, double result);
+  };
+};

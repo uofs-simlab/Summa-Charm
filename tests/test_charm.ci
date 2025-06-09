@@ -1,0 +1,9 @@
+module TestChare {
+  chare TestChare {
+    entry TestChare();
+  };
+  
+  mainchare Main {
+    entry Main(CkArgMsg *m);
+  };
+}
