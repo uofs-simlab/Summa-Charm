@@ -68,7 +68,7 @@ public:
       else if (strcmp(m->argv[it], "-h") == 0 || strcmp(m->argv[it], "--help") == 0)
       {
         std::cout << command_line_help << std::endl;
-        mainProxy.done();
+        CkExit();
       }
     }
 
@@ -91,7 +91,7 @@ public:
             "Not Specified!! ****\n\nConfig File: %s \nMaster File: %s"
             "\n\n%s",
             config_file.c_str(), master_file.c_str(), command_line_help.c_str());
-        mainProxy.done();
+        CkExit();
       }
     }
 
@@ -102,18 +102,17 @@ public:
     if (output_file_suffix != "")
       settings.fa_actor_settings_.output_file_suffix_ = output_file_suffix;
 
+    // Set default values for GRU parameters if not specified
+    if (startGRU == -1) startGRU = 1;    // Default start GRU
+    if (countGRU == -1) countGRU = 10;   // Default number of GRUs
+
     //   self->spawn(actor_from_state<SummaActor>, startGRU, countGRU, settings, self);
     // start the SummaChare with the given settings
     CkPrintf("Now we can spawn the SummaChare.\n");
     CProxy_SummaChare summaChareProxy = CProxy_SummaChare::ckNew(startGRU, countGRU, config_file, master_file, output_file_suffix);
 
-
-
-    CkPrintf("Test completed successfully. Exiting.\n");
-    done();
+    // Note: SummaChare will call finishExecution() when it's done
   }
-
-  void done() { CkExit(); }
 };
 
 #include "mainChare.def.h"

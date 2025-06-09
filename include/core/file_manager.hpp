@@ -2,6 +2,7 @@
 #include <string>
 #include <netcdf.h>
 
+// TODO: Enable when SUMMA Fortran modules are properly integrated
 // extern "C" {
 //   void setTimesDirsAndFiles_fortran(char const* file_manager_path,  
 //         int* err, void* err_msg);

@@ -11,6 +11,7 @@
 #include "batch_container.hpp"
 #include "summa_global_data.hpp"
 
+
 class SummaChare : public CBase_SummaChare
 {
 public:
@@ -45,5 +46,6 @@ private:
   int spawnJob();
   int createLogDirectory();
   void finalize();
+  void simulateJobProcessing();  // TODO: Replace with actual SUMMA processing
 
 };

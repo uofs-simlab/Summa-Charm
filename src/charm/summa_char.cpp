@@ -88,7 +88,7 @@ SummaChare::SummaChare(int start_gru, int num_gru,
   }
 
   batch_container_ = std::make_unique<BatchContainer>(start_gru_, num_gru_,
-                                                      settings_.summa_actor_settings_.max_gru_per_job_, log_folder_);
+                                                      settings_.job_actor_settings_.batch_size_, log_folder_);
   CkPrintf("\n\nStarting SUMMA Chare with %d Batches\n\n",
            batch_container_->getBatchesRemaining());
 
@@ -104,6 +104,9 @@ void SummaChare::finalize()
 {
   timing_info_.updateEndPoint("total_duration");
   CkPrintf("SummaChare completed. Total failed GRUs: %d\n", num_gru_failed_);
+  
+  // Call back to Main to finish execution instead of handling it here
+  CkPrintf("Test completed successfully. Exiting.\n");
   CkExit();
 }
 
@@ -200,9 +203,60 @@ int SummaChare::createLogDirectory()
 
 int SummaChare::spawnJob()
 {
-  // Placeholder implementation - should spawn a job to process HRUs
-  CkPrintf("Spawning job for next batch...\n");
-  finalize(); // For now, just finalize the chare
+  // Get the next unsolved batch
+  auto batch_optional = batch_container_->getUnsolvedBatch();
+  if (!batch_optional.has_value()) {
+    CkPrintf("No more batches to process. Finalizing...\n");
+    finalize();
+    return 0;
+  }
+
+  current_batch_ = std::make_shared<Batch>(batch_optional.value());
+  
+  CkPrintf("Processing Batch ID: %d, Start HRU: %d, Num HRUs: %d\n", 
+           current_batch_->getBatchID(), 
+           current_batch_->getStartHRU(), 
+           current_batch_->getNumHRU());
+
+  // TODO: Replace with actual SUMMA job processing
+  // For now, simulate successful processing
+  simulateJobProcessing();
+  
   return 0;
+}
+
+void SummaChare::simulateJobProcessing()
+{
+  // Simulate processing time and success
+  double job_duration = 1.5;    // seconds
+  double read_duration = 0.2;   // seconds  
+  double write_duration = 0.1;  // seconds
+  int num_gru_failed = 0;       // assume all succeed for now
+  
+  CkPrintf("Simulating processing for Batch %d...\n", current_batch_->getBatchID());
+  
+  // Update batch statistics
+  int num_success = current_batch_->getNumHRU() - num_gru_failed;
+  batch_container_->updateBatchStats(current_batch_->getBatchID(),
+                                     job_duration, read_duration, write_duration, 
+                                     num_success, num_gru_failed);
+
+  num_gru_failed_ += num_gru_failed;
+  
+  CkPrintf("Batch %d completed. Success: %d, Failed: %d\n", 
+           current_batch_->getBatchID(), num_success, num_gru_failed);
+
+  // Check if there are more batches to process
+  if (!batch_container_->hasUnsolvedBatches()) {
+    CkPrintf("All batches completed!\n");
+    finalize();
+    return;
+  }
+
+  // Process next batch
+  if (spawnJob() != 0) {
+    CkPrintf("ERROR--Unable to spawn next job\n");
+    CkExit();
+  }
 }
 
