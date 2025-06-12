@@ -4,12 +4,13 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include "SummaChare.decl.h"
 #include "timing_info.hpp"
-#include "settings_functions.hpp"
 #include "file_manager.hpp"
+#include "settings_functions.hpp"
 #include "batch_container.hpp"
 #include "summa_global_data.hpp"
+#include "SummaChare.decl.h"
+
 
 class SummaChare : public CBase_SummaChare
 {

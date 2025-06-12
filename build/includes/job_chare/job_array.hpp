@@ -25,8 +25,8 @@ class Batch;
 class JobArray : public CBase_JobArray
 {
 public:
-    // Simplified constructor - only takes batch
-    JobArray(Batch batch);
+    // Simplified constructor - takes batch and the chare ID
+    JobArray(Batch batch, CkChareID summa_chare_proxy);
 
     // Entry methods from JobArray.ci
     void initializeBatch(Batch batch);
@@ -66,4 +66,7 @@ private:
     // Tolerance values (from CAF JobActor)
     double rel_tol_;
     double abs_tol_;
+
+    // SummaChare proxy as a CkChareID
+    CkChareID summa_chare_proxy_;
 };

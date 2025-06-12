@@ -1,4 +1,5 @@
 #include "summa_chare.hpp"
+#include "SummaChare.decl.h"
 #include "job_array.hpp"
 #include "json.hpp"
 #include <iostream>
@@ -178,8 +179,7 @@ int SummaChare::spawnJob()
              current_batch_->getStartHRU(), 
              current_batch_->getNumHRU());
 
-    // Create an array of JobArray chares and pass our proxy so they can call us back
-    CProxy_JobArray job_array_proxy = CProxy_JobArray::ckNew(*current_batch_, 1);
+    CProxy_JobArray job_array_proxy = CProxy_JobArray::ckNew(*current_batch_, thishandle, 1);
 
     return 0;
 }

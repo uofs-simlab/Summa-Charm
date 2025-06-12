@@ -1,13 +1,16 @@
 #include "job_array.hpp"
 #include "gru_struc_charm.hpp"
 #include "FileAccessChare.decl.h"
+#include "SummaChare.decl.h"  
+
 // #include "summa_init_struc.hpp"  // Comment out for now since it's missing
 #include <unistd.h>
 #include <limits.h>
 
-JobArray::JobArray(Batch batch)
+JobArray::JobArray(Batch batch, CkChareID summa_chare_proxy)
     : batch_(batch), enable_logging_(false), default_tol_(true),
-      num_steps_(0), timestep_(1), rel_tol_(0.0), abs_tol_(0.0)
+      num_steps_(0), timestep_(1), rel_tol_(0.0), abs_tol_(0.0),
+      summa_chare_proxy_(summa_chare_proxy)
 {
     CkPrintf("JobArray[%d]: Started initialization for batch with %d GRUs starting at %d\n", 
              thisIndex, batch_.getNumHRU(), batch_.getStartHRU());
@@ -182,6 +185,13 @@ void JobArray::finalize()
     CkPrintf("  Init Duration: %f seconds\n", init_duration);
     
     CkPrintf("JobArray[%d]: Finalization completed\n", thisIndex);
+
+    // Notify the SummaChare that we're done
+    CkPrintf("JobArray[%d]: Notifying SummaChare of completion...\n", thisIndex);
+   
+    CProxy_SummaChare summa_chare(summa_chare_proxy_);
+    summa_chare.doneJob(0, total_duration, init_duration, 0.0);  // Placeholder values
+   
 }
 
 void JobArray::pup(PUP::er &p) {

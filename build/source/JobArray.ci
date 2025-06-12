@@ -2,7 +2,7 @@ module JobArray {
   include "batch.hpp";
   
   array [1D] JobArray {
-    entry JobArray(Batch batch);
+    entry JobArray(Batch batch, CkChareID summa_chare_proxy);
     entry void initializeBatch(Batch batch);
     entry void processGRU(int gru_id);
     entry void finalize();
