@@ -1,5 +1,0 @@
-/u1/pma753/SummaChare/build/cmake_build/CMakeFiles/FortranCInterface/VerifyCXX/CMakeFiles/FortranCInterface/CMakeFiles/myfort.dir
-/u1/pma753/SummaChare/build/cmake_build/CMakeFiles/FortranCInterface/VerifyCXX/CMakeFiles/FortranCInterface/CMakeFiles/symbols.dir
-/u1/pma753/SummaChare/build/cmake_build/CMakeFiles/FortranCInterface/VerifyCXX/CMakeFiles/FortranCInterface/CMakeFiles/FortranCInterface.dir
-/u1/pma753/SummaChare/build/cmake_build/CMakeFiles/FortranCInterface/VerifyCXX/CMakeFiles/FortranCInterface/CMakeFiles/edit_cache.dir
-/u1/pma753/SummaChare/build/cmake_build/CMakeFiles/FortranCInterface/VerifyCXX/CMakeFiles/FortranCInterface/CMakeFiles/rebuild_cache.dir
