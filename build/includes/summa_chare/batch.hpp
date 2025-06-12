@@ -1,8 +1,9 @@
 #pragma once
-#include "caf/all.hpp"
+#include "pup.h"
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <pup_stl.h>
 
 class Batch {
   private:
@@ -43,8 +44,21 @@ class Batch {
 
     std::string toString();
 
-    void assignToActor(std::string hostname, caf::actor assigned_actor);
+    // void assignToActor(std::string hostname, caf::actor assigned_actor);  // Commented out for Charm++ compatibility
 
+
+    // Charm++ PUP serialization
+    void pup(PUP::er &p) {
+        p | batch_id_;
+        p | start_hru_;
+        p | num_hru_;
+        p | run_time_;
+        p | read_time_;
+        p | write_time_;
+        p | assigned_to_actor_;
+        p | solved_;
+        p | log_dir_;  // std::string is supported by pup_stl.h
+    }
 
     template <class Inspector>
     friend bool inspect(Inspector& inspector, Batch& batch) {

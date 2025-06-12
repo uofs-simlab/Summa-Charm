@@ -7,6 +7,8 @@
 #include <iomanip>
 #include <thread>
 #include "json.hpp"
+#include "pup.h"  // For Charm++ serialization
+#include "pup_stl.h"  // For STL container serialization
 
 #define SUCCESS 0
 #define FAILURE -1
@@ -112,6 +114,13 @@ public:
            std::to_string(num_timesteps_in_output_buffer_) + "\n";
     str += "Output File Suffix: " + output_file_suffix_ + "\n";
     return str;
+  }
+
+  // PUP method for Charm++ serialization
+  void pup(PUP::er &p) {
+    p | num_partitions_in_output_buffer_;
+    p | num_timesteps_in_output_buffer_;
+    p | output_file_suffix_;
   }
 };
 

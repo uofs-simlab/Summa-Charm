@@ -1,5 +1,5 @@
 #include "mainChare.decl.h"
-#include "summa_chare.hpp"
+#include "summa_chare.hpp"  // Needed for complete class definition
 #include "settings_functions.hpp"
 #include <cstring>
 #include <iostream>
@@ -114,7 +114,11 @@ public:
 
     // Note: SummaChare will call finishExecution() when it's done
   }
+
+  void done() {
+    CkPrintf("Simulation complete.\n");
+    CkExit();
+  }
 };
 
 #include "mainChare.def.h"
-#include "SummaChare.def.h"

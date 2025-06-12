@@ -1,7 +1,9 @@
 #include "summa_chare.hpp"
+#include "job_array.hpp"
 #include "json.hpp"
 #include <iostream>
 #include <fstream>
+// #include <filesystem>
 #include <chrono>
 #include <sstream>
 #include <iomanip>
@@ -11,6 +13,7 @@
 #include <sys/types.h>
 #include <errno.h>
 #include <cstring>
+#include <iostream>
 
 // Forward declaration
 using json = nlohmann::json;
@@ -52,12 +55,6 @@ SummaChare::SummaChare(int start_gru, int num_gru,
     return;
   }
 
-  // TEMPORARY FIX: Skip NetCDF file access to avoid memory corruption
-  // TODO: Fix NetCDF/HDF5 library compatibility issue
-  CkPrintf("WARNING: Skipping NetCDF file access due to library issues\n");
-  file_gru_ = num_gru_ + start_gru_;  // Set to a safe value
-  
-  /*
   file_gru_ = file_manager_->getFileGru();
   if (file_gru_ < 0)
   {
@@ -71,31 +68,19 @@ SummaChare::SummaChare(int start_gru, int num_gru,
     CkExit();
     return;
   }
-  */
 
-  global_fortran_state_ = std::make_unique<SummaGlobalData>();
-  CkPrintf("DEBUG: Created SummaGlobalData\n");
-  
-  // TEMPORARY FIX: Skip Fortran global data initialization to avoid segfault
-  // TODO: Fix Fortran/C++ memory management and threading issues  
-  CkPrintf("WARNING: Skipping Fortran global data initialization due to memory issues\n");
-  auto err = 0;  // Success
-  
-  /*
-  auto err = global_fortran_state_->defineGlobalData();
-  CkPrintf("DEBUG: Called defineGlobalData, err=%d\n", err);
-  
-  if (err != 0)
-  {
-    CkPrintf("ERROR--Global State: Unable To Define Global Data");
-    CkExit();
-    return;
-  }
-  */
+  // Temporarily comment out global data initialization to isolate NetCDF crash
+  // global_fortran_state_ = std::make_unique<SummaGlobalData>();
+  // auto err = global_fortran_state_->defineGlobalData();
+  // if (err != 0)
+  // {
+  //   CkPrintf("ERROR--Global State: Unable To Define Global Data");
+  //   CkExit();
+  //   return;
+  // }
+  CkPrintf("Skipping global Fortran state initialization for debugging\n");
 
-  CkPrintf("DEBUG: About to create log directory\n");
-  err = createLogDirectory();
-  CkPrintf("DEBUG: Created log directory, err=%d\n", err);
+  int err = createLogDirectory();
   if (err != 0)
   {
     CkPrintf("ERROR--Unable To Create Log Directory\n");
@@ -104,7 +89,7 @@ SummaChare::SummaChare(int start_gru, int num_gru,
   }
 
   batch_container_ = std::make_unique<BatchContainer>(start_gru_, num_gru_,
-                                                      settings_.job_actor_settings_.batch_size_, log_folder_);
+                                                      settings_.summa_actor_settings_.max_gru_per_job_, log_folder_);
   CkPrintf("\n\nStarting SUMMA Chare with %d Batches\n\n",
            batch_container_->getBatchesRemaining());
 
@@ -120,49 +105,8 @@ void SummaChare::finalize()
 {
   timing_info_.updateEndPoint("total_duration");
   CkPrintf("SummaChare completed. Total failed GRUs: %d\n", num_gru_failed_);
-  
-  // Call back to Main to finish execution instead of handling it here
-  CkPrintf("Test completed successfully. Exiting.\n");
   CkExit();
 }
-
-// void SummaChare::doneJob(int num_gru_failed, double job_duration, double read_duration, double write_duration)
-// {
-
-  // int num_success = current_batch_->getNumHRU() - num_gru_failed;
-  // batch_container_->updateBatchStats(current_batch_->getBatchID(),
-  //                                    job_duration, read_duration, write_duration, num_success, num_gru_failed);
-
-  // num_gru_failed_ += num_gru_failed;
-
-  // if (!batch_container_->hasUnsolvedBatches())
-  // {
-  //   finalize();
-  //   return;
-  // }
-
-  // if (spawnJob() != 0)
-  // {
-  //   CkPrintf("ERROR--Unable to spawn next job\n");
-  //   CkExit();
-  // }
-// }
-
-// void SummaChare::reportError(int err_code, const std::string &err_msg)
-// {
-//   if (err_code == -2)
-//   {
-//     CkPrintf("Unrecoverable error from JobChare: %s\n", err_msg.c_str());
-//     CkExit(); // good for fatal errors
-//   }
-//   else
-//   {
-//     CkPrintf("Recoverable error (not yet handled): %s\n", err_msg.c_str());
-//     CkExit(); // maybe too strong for recoverable
-//   }
-// }
-
-// Mahdi: What about down_message?
 
 bool create_directories(const std::string &path)
 {
@@ -219,58 +163,66 @@ int SummaChare::createLogDirectory()
 
 int SummaChare::spawnJob()
 {
-  // Process batches in a loop to avoid recursion and stack overflow
-  while (true) {
-    CkPrintf("Spawning job...\n");
-    
     // Get the next unsolved batch
     auto batch_optional = batch_container_->getUnsolvedBatch();
     if (!batch_optional.has_value()) {
-      CkPrintf("No more batches to process. Finalizing...\n");
-      finalize();
-      return 0;
+        CkPrintf("No more batches to process. Finalizing...\n");
+        finalize();
+        return 0;
     }
 
     current_batch_ = std::make_shared<Batch>(batch_optional.value());
-    
+
     CkPrintf("Processing Batch ID: %d, Start HRU: %d, Num HRUs: %d\n", 
              current_batch_->getBatchID(), 
              current_batch_->getStartHRU(), 
              current_batch_->getNumHRU());
 
-    // Process this batch
-    simulateJobProcessing();
+    // Create an array of JobArray chares
+    CProxy_JobArray job_array_proxy = CProxy_JobArray::ckNew(*current_batch_, num_gru_);
 
-    // Clear current batch to avoid memory issues
-    current_batch_.reset();
-    
-    // Continue loop to process next batch
-  }
-  
-  return 0;
+    return 0;
 }
 
-void SummaChare::simulateJobProcessing()
+void SummaChare::doneJob(int num_gru_failed, double job_duration, double read_duration, double write_duration)
 {
-  // Simulate processing time and success
-  double job_duration = 1.5;    // seconds
-  double read_duration = 0.2;   // seconds  
-  double write_duration = 0.1;  // seconds
-  int num_gru_failed = 0;       // assume all succeed for now
-  
-  CkPrintf("Simulating processing for Batch %d...\n", current_batch_->getBatchID());
-  
-  // Update batch statistics
   int num_success = current_batch_->getNumHRU() - num_gru_failed;
   batch_container_->updateBatchStats(current_batch_->getBatchID(),
-                                     job_duration, read_duration, write_duration, 
-                                     num_success, num_gru_failed);
+                                     job_duration, read_duration, write_duration, num_success, num_gru_failed);
 
   num_gru_failed_ += num_gru_failed;
-  
+
   CkPrintf("Batch %d completed. Success: %d, Failed: %d\n", 
            current_batch_->getBatchID(), num_success, num_gru_failed);
 
-  // Note: No recursive call to spawnJob() - this is now handled by the loop in spawnJob()
+  if (!batch_container_->hasUnsolvedBatches())
+  {
+    CkPrintf("All batches completed!\n");
+    finalize();
+    return;
+  }
+
+  if (spawnJob() != 0)
+  {
+    CkPrintf("ERROR--Unable to spawn next job\n");
+    CkExit();
+  }
 }
+
+void SummaChare::reportError(int err_code, std::string err_msg)
+{
+  if (err_code == -2)
+  {
+    CkPrintf("Unrecoverable error from JobChare: %s\n", err_msg.c_str());
+    CkExit(); // Fatal error
+  }
+  else
+  {
+    CkPrintf("Recoverable error (not yet handled): %s\n", err_msg.c_str());
+    CkExit(); // For now, treat all errors as fatal
+  }
+}
+
+
+#include "SummaChare.def.h"
 

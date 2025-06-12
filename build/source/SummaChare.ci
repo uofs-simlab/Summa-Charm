@@ -1,5 +1,9 @@
 module SummaChare {
+  extern module JobArray;
+  
   chare SummaChare {
     entry SummaChare(int start_gru, int num_gru, std::string config_file, std::string master_file, std::string output_file_suffix);
+    entry void doneJob(int num_gru_failed, double job_duration, double read_duration, double write_duration);
+    entry void reportError(int err_code, std::string err_msg);
   };
 }

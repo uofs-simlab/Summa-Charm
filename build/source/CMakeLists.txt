@@ -7,6 +7,8 @@
 set(CI_FILES
     ${CHARES_DIR}/main.ci
     ${CHARES_DIR}/SummaChare.ci
+    ${CHARES_DIR}/JobArray.ci
+    ${CHARES_DIR}/FileAccessChare.ci
     CACHE INTERNAL "CI_FILES")
 
 # Chares interface modules
@@ -72,20 +74,22 @@ set(SYS_INIT
     # ${SYS_INIT_DIR}/summa_server.cpp
     CACHE INTERNAL "SYS_INIT")
 set(FILE_ACCESS_CHARE
-    # ${FILE_ACCESS_DIR}/summa_init_struc.cpp
-    # ${FILE_ACCESS_DIR}/file_access_chare.cpp
+    ${FILE_ACCESS_DIR}/summa_init_struc.f90  # Fortran interface file (already uncommented)
+    ${FILE_ACCESS_DIR}/file_access_chare.cpp  # C++ implementation
     # ${FILE_ACCESS_DIR}/forcing_file_info.cpp
     # ${FILE_ACCESS_DIR}/output_container.cpp
     # ${FILE_ACCESS_DIR}/output_buffer.cpp
     CACHE INTERNAL "FILE_ACCESS_CHARE")
 set(JOB_CHARE
-    # ${JOB_CHARE_DIR}/gru_struc.cpp
-    # ${JOB_CHARE_DIR}/job_chare.cpp
+    ${JOB_CHARE_DIR}/gru_struc.f90  # Fortran interface file (exists)
+    ${JOB_CHARE_DIR}/job_array.cpp  # C++ implementation for JobArray
+    # ${JOB_CHARE_DIR}/job_chare.cpp  # Old JobChare (replaced by JobArray)
     # ${JOB_CHARE_DIR}/da_server_chare.cpp
     # ${JOB_CHARE_DIR}/da_client_chare.cpp
     # ${JOB_CHARE_DIR}/node_chare.cpp
     CACHE INTERNAL "JOB_CHARE")
 set(GRU_CHARE
+    ${GRU_CHARE_DIR}/gru_struc_charm.cpp  # C++ implementation for GRU structures
     # ${GRU_CHARE_DIR}/gru_chare.cpp
     # ${GRU_CHARE_DIR}/gru_batch_chare.cpp
     CACHE INTERNAL "GRU_CHARE")

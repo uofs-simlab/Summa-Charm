@@ -1,7 +1,10 @@
 mainmodule mainChare {
   extern module SummaChare;
+  extern module JobArray;
+  extern module FileAccessChare;
   
   mainchare Main {
     entry Main(CkArgMsg *m);
+    entry void done();
   };
 };
