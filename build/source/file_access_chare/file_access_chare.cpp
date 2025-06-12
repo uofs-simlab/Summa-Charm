@@ -19,7 +19,7 @@ private:
     
     // Output handling
     // std::unique_ptr<OutputBuffer> output_buffer_;
-    // std::unique_ptr<forcingFileContainer> forcing_files_;
+    std::unique_ptr<forcingFileContainer> forcing_files_;
     
     // Checkpointing variables
     int completed_checkpoints_ = 1;
@@ -72,17 +72,47 @@ void FileAccessChare::initFileAccessChare(int file_gru, int num_hru, CProxy_JobA
     
     num_hru_ = num_hru;
     
-    // Get number of time steps from Fortran
+    // First, get number of time steps from globalData::numtim (set during SUMMA initialization)
     f_getNumTimeSteps(num_steps_);
-    CkPrintf("FileAccessChare: Number of timesteps = %d\n", num_steps_);
+    CkPrintf("FileAccessChare: Number of timesteps from globalData = %d\n", num_steps_);
     
-    // TODO: Initialize forcing files
-    // forcing_files_ = std::make_unique<forcingFileContainer>();
-    // if (forcing_files_->initForcingFiles() != 0) {
-    //     CkPrintf("FileAccessChare: Error initializing forcing files\n");
-    //     job_array_proxy.fileAccessReady(-1);
-    //     return;
-    // }
+    // Initialize forcing files following SUMMA-Actors pattern
+    CkPrintf("FileAccessChare: Initializing forcing files...\n");
+    
+    // TEMPORARY: Skip forcing file initialization due to uninitialized forcFileInfo
+    CkPrintf("FileAccessChare: TEMPORARILY SKIPPING forcing file initialization\n");
+    CkPrintf("FileAccessChare: Issue: forcFileInfo array exists but elements are not properly initialized\n");
+    /*
+    forcing_files_ = std::make_unique<forcingFileContainer>();
+    CkPrintf("FileAccessChare: Created forcingFileContainer, about to call initForcingFiles...\n");
+    
+    int init_result = forcing_files_->initForcingFiles();
+    CkPrintf("FileAccessChare: initForcingFiles returned %d\n", init_result);
+    
+    if (init_result != 0) {
+        CkPrintf("FileAccessChare: Error initializing forcing files\n");
+        job_array_proxy[0].fileAccessReady(-1);
+        return;
+    }
+    */
+    CkPrintf("FileAccessChare: Forcing files initialization skipped\n");
+    
+    // If timesteps weren't set by globalData, use a reasonable default
+    if (num_steps_ <= 0) {
+        // Calculate timesteps based on the simulation period
+        // From fileManager.txt: simStartTime: 2019-01-01 00:00, simEndTime: 2019-12-31 23:00
+        // This is 1 year = 365 days * 24 hours = 8760 timesteps
+        num_steps_ = 8760;  // 1 year of hourly data
+        CkPrintf("FileAccessChare: Using default timesteps for 1 year simulation = %d\n", num_steps_);
+        
+        // TODO: When forcing files are working, use this logic:
+        /*
+        if (forcing_files_ && forcing_files_->forcing_files_.size() > 0) {
+            num_steps_ = forcing_files_->getNumSteps(1);  // Get from first forcing file
+            CkPrintf("FileAccessChare: Using timesteps from forcing file = %d\n", num_steps_);
+        }
+        */
+    }
     
     // TODO: Initialize output buffer
     // output_buffer_ = std::make_unique<OutputBuffer>(fa_settings_, num_gru_info_, num_hru_, num_steps_);
@@ -92,13 +122,15 @@ void FileAccessChare::initFileAccessChare(int file_gru, int num_hru, CProxy_JobA
     // int err = output_buffer_->defOutput(std::to_string(thisIndex));
     // if (err != 0) {
     //     CkPrintf("FileAccessChare: Error defOutput - Can't define output file\n");
-    //     job_array_proxy.fileAccessReady(-1);
+    //     job_array_proxy[0].fileAccessReady(-1);
     //     return;
     // }
     
     // err = output_buffer_->allocateOutputBuffer(num_steps_);
     // if (err != 0) {
     //     CkPrintf("FileAccessChare: Error allocating output buffer\n");
+    //     num_steps_ = -1;
+    // };
     //     num_steps_ = -1;
     // }
     

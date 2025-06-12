@@ -5,10 +5,10 @@
 #include <memory>
 #include <vector>
 #include "num_gru_info.hpp"  // Include the global NumGRUInfo definition
+#include "forcing_file_info.hpp"  // Include forcing file support
 
 // Forward declarations
 class OutputBuffer;
-class forcingFileContainer;
 class TimingInfo;
 class FileAccessActorSettings;  // Defined in settings_functions.hpp
 

@@ -76,7 +76,7 @@ set(SYS_INIT
 set(FILE_ACCESS_CHARE
     ${FILE_ACCESS_DIR}/summa_init_struc.f90  # Fortran interface file (already uncommented)
     ${FILE_ACCESS_DIR}/file_access_chare.cpp  # C++ implementation
-    # ${FILE_ACCESS_DIR}/forcing_file_info.cpp
+    ${FILE_ACCESS_DIR}/forcing_file_info.cpp
     # ${FILE_ACCESS_DIR}/output_container.cpp
     # ${FILE_ACCESS_DIR}/output_buffer.cpp
     CACHE INTERNAL "FILE_ACCESS_CHARE")

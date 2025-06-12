@@ -7,8 +7,8 @@
 #include <unistd.h>
 #include <limits.h>
 
-JobArray::JobArray(Batch batch, CkChareID summa_chare_proxy)
-    : batch_(batch), enable_logging_(false), default_tol_(true),
+JobArray::JobArray(Batch batch, CkChareID summa_chare_proxy, int file_gru)
+    : batch_(batch), file_gru_(file_gru), enable_logging_(false), default_tol_(true),
       num_steps_(0), timestep_(1), rel_tol_(0.0), abs_tol_(0.0),
       summa_chare_proxy_(summa_chare_proxy)
 {
@@ -43,61 +43,6 @@ void JobArray::initializeBatch(Batch batch)
         CkPrintf("JobArray[%d]: Logging disabled\n", thisIndex);
     }
 
-    // GruStruc Initialization (from CAF JobActor::make_behavior())
-    CkPrintf("JobArray[%d]: About to initialize GruStruc...\n", thisIndex);
-    
-    // TODO: Temporarily disable GruStruc initialization to isolate the crash
-    /*
-    gru_struc_ = std::make_unique<GruStruc>(batch_.getStartHRU(), 
-        batch_.getNumHRU(), 1); // max_run_attempts = 1 for simplification
-
-    if (gru_struc_->readDimension()) {
-        err_msg = "ERROR: JobArray - ReadDimension\n";
-        CkPrintf("JobArray[%d]: %s", thisIndex, err_msg.c_str());
-        return;
-    }
-
-    if (gru_struc_->readIcondNlayers()) {
-        err_msg = "ERROR: JobArray - ReadIcondNlayers\n";
-        CkPrintf("JobArray[%d]: %s", thisIndex, err_msg.c_str());
-        return;
-    }
-
-    gru_struc_->getNumHrusPerGru();
-    CkPrintf("JobArray[%d]: GruStruc initialized successfully\n", thisIndex);
-    */
-    
-    CkPrintf("JobArray[%d]: GruStruc initialization skipped for debugging\n", thisIndex);
-
-    // SummaInitStruc Initialization (from CAF JobActor::make_behavior())
-    // NOTE: Commenting out for now since we don't have SummaInitStruc in Charm version
-    /*
-    CkPrintf("JobArray[%d]: Initializing SummaInitStruc...\n", thisIndex);
-    summa_init_struc_ = std::make_unique<SummaInitStruc>();
-    
-    if (summa_init_struc_->allocate(batch_.getNumHRU()) != 0) {
-        err_msg = "ERROR -- JobArray: SummaInitStruc allocation failed\n";
-        CkPrintf("JobArray[%d]: %s", thisIndex, err_msg.c_str());
-        return;
-    }
-    
-    if (summa_init_struc_->summa_paramSetup() != 0) {
-        err_msg = "ERROR -- JobArray: SummaInitStruc paramSetup failed\n";
-        CkPrintf("JobArray[%d]: %s", thisIndex, err_msg.c_str());
-        return;
-    }
-    
-    if (summa_init_struc_->summa_readRestart() != 0) {
-        err_msg = "ERROR -- JobArray: SummaInitStruc readRestart failed\n";
-        CkPrintf("JobArray[%d]: %s", thisIndex, err_msg.c_str());
-        return;
-    }
-    
-    // Get initial tolerances from SummaInitStruc
-    summa_init_struc_->getInitTolerance(rel_tol_, abs_tol_);
-    CkPrintf("JobArray[%d]: SummaInitStruc initialized successfully\n", thisIndex);
-    */
-
     // For now, set default tolerances
     rel_tol_ = 1e-6;
     abs_tol_ = 1e-6;
@@ -105,10 +50,10 @@ void JobArray::initializeBatch(Batch batch)
              thisIndex, rel_tol_, abs_tol_);
 
     // Create NumGRUInfo (from CAF JobActor::make_behavior())
-    // For now, use placeholder values since we don't have GruStruc working
+    // Use the actual file_gru parameter passed from SummaChare
     num_gru_info_ = NumGRUInfo(batch_.getStartHRU(), batch_.getStartHRU(), 
                                batch_.getNumHRU(), batch_.getNumHRU(), 
-                               1, false);  // placeholder file_gru = 1
+                               file_gru_, false);  // Use actual file_gru
 
     // Set FileAccessChare settings (from CAF JobActor)
     fa_settings_ = FileAccessActorSettings(1, 2);  // Default values from CAF
@@ -118,7 +63,7 @@ void JobArray::initializeBatch(Batch batch)
     file_access_chare_ = CProxy_FileAccessChare::ckNew(num_gru_info_, fa_settings_);
     
     // Initialize FileAccessChare with our proxy so it can call us back
-    file_access_chare_.initFileAccessChare(1, batch_.getNumHRU(), thisProxy);  // placeholder file_gru = 1
+    file_access_chare_.initFileAccessChare(file_gru_, batch_.getNumHRU(), thisProxy);  // Use actual file_gru
     
     CkPrintf("JobArray[%d]: FileAccessChare spawned, waiting for initialization...\n", thisIndex);
 }
@@ -199,6 +144,7 @@ void JobArray::pup(PUP::er &p) {
 
     // Serialize basic types only for now
     p | batch_;
+    p | file_gru_;
     p | enable_logging_;
     p | default_tol_;
     p | num_steps_;

@@ -26,7 +26,7 @@ class JobArray : public CBase_JobArray
 {
 public:
     // Simplified constructor - takes batch and the chare ID
-    JobArray(Batch batch, CkChareID summa_chare_proxy);
+    JobArray(Batch batch, CkChareID summa_chare_proxy, int file_gru);
 
     // Entry methods from JobArray.ci
     void initializeBatch(Batch batch);
@@ -42,6 +42,7 @@ private:
     // Basic member variables for simplified implementation
     Batch batch_;
     char hostname_[HOST_NAME_MAX];
+    int file_gru_;  // File GRU parameter from SummaChare
     
     // Timing information 
     TimingInfo timing_info_;
