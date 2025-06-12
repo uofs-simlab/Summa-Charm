@@ -69,6 +69,8 @@ SummaChare::SummaChare(int start_gru, int num_gru,
     return;
   }
 
+  CkPrintf("File GRU: %d\n", file_gru_);
+
   global_fortran_state_ = std::make_unique<SummaGlobalData>();
   auto err = global_fortran_state_->defineGlobalData();
   if (err != 0)
@@ -176,8 +178,8 @@ int SummaChare::spawnJob()
              current_batch_->getStartHRU(), 
              current_batch_->getNumHRU());
 
-    // Create an array of JobArray chares
-    CProxy_JobArray job_array_proxy = CProxy_JobArray::ckNew(*current_batch_, num_gru_);
+    // Create an array of JobArray chares and pass our proxy so they can call us back
+    CProxy_JobArray job_array_proxy = CProxy_JobArray::ckNew(*current_batch_, 1);
 
     return 0;
 }

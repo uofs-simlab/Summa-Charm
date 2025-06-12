@@ -114,9 +114,8 @@ void JobArray::initializeBatch(Batch batch)
     CkPrintf("JobArray[%d]: Creating FileAccessChare...\n", thisIndex);
     file_access_chare_ = CProxy_FileAccessChare::ckNew(num_gru_info_, fa_settings_);
     
-    // Initialize FileAccessChare with callback (following CAF pattern)
-    CkCallback cb(CkIndex_JobArray::fileAccessReady(0), thisProxy[thisIndex]);
-    file_access_chare_.initFileAccessChare(1, batch_.getNumHRU(), cb);  // placeholder file_gru = 1
+    // Initialize FileAccessChare with our proxy so it can call us back
+    file_access_chare_.initFileAccessChare(1, batch_.getNumHRU(), thisProxy);  // placeholder file_gru = 1
     
     CkPrintf("JobArray[%d]: FileAccessChare spawned, waiting for initialization...\n", thisIndex);
 }

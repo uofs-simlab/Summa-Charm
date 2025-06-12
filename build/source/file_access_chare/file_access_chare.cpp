@@ -2,6 +2,7 @@
 #include "settings_functions.hpp"  // For FileAccessActorSettings
 #include "pup_stl.h"  // For STL serialization
 #include "FileAccessChare.decl.h"
+#include "JobArray.decl.h"  // For CProxy_JobArray
 
 // Now define the inheritance after the base class is available
 class FileAccessChare : public CBase_FileAccessChare {
@@ -29,7 +30,7 @@ public:
     FileAccessChare(NumGRUInfo num_gru_info, FileAccessActorSettings fa_settings);
     FileAccessChare(CkMigrateMessage* msg) : num_gru_info_(), fa_settings_() {}
 
-    void initFileAccessChare(int file_gru, int num_hru, CkCallback cb);
+    void initFileAccessChare(int file_gru, int num_hru, CProxy_JobArray job_array_proxy);
     void accessForcing(int iFile);
     void restartFailures();
     void finalize();
@@ -66,7 +67,7 @@ FileAccessChare::FileAccessChare(NumGRUInfo num_gru_info, FileAccessActorSetting
     }
 }
 
-void FileAccessChare::initFileAccessChare(int file_gru, int num_hru, CkCallback cb) {
+void FileAccessChare::initFileAccessChare(int file_gru, int num_hru, CProxy_JobArray job_array_proxy) {
     CkPrintf("FileAccessChare: Initializing with file_gru=%d, num_hru=%d\n", file_gru, num_hru);
     
     num_hru_ = num_hru;
@@ -79,7 +80,7 @@ void FileAccessChare::initFileAccessChare(int file_gru, int num_hru, CkCallback 
     // forcing_files_ = std::make_unique<forcingFileContainer>();
     // if (forcing_files_->initForcingFiles() != 0) {
     //     CkPrintf("FileAccessChare: Error initializing forcing files\n");
-    //     cb.send(CkReductionMsg::buildNew(sizeof(int), &num_steps_));
+    //     job_array_proxy.fileAccessReady(-1);
     //     return;
     // }
     
@@ -91,8 +92,7 @@ void FileAccessChare::initFileAccessChare(int file_gru, int num_hru, CkCallback 
     // int err = output_buffer_->defOutput(std::to_string(thisIndex));
     // if (err != 0) {
     //     CkPrintf("FileAccessChare: Error defOutput - Can't define output file\n");
-    //     num_steps_ = -1;
-    //     cb.send(CkReductionMsg::buildNew(sizeof(int), &num_steps_));
+    //     job_array_proxy.fileAccessReady(-1);
     //     return;
     // }
     
@@ -104,8 +104,9 @@ void FileAccessChare::initFileAccessChare(int file_gru, int num_hru, CkCallback 
     
     CkPrintf("FileAccessChare: Initialization complete\n");
     
-    // Return number of steps via callback
-    cb.send(CkReductionMsg::buildNew(sizeof(int), &num_steps_));
+    // Call the JobArray's fileAccessReady method directly
+    // Since we received the full proxy, we need to call element 0 (assuming single element array)
+    job_array_proxy[0].fileAccessReady(num_steps_);
 }
 
 void FileAccessChare::accessForcing(int iFile) {

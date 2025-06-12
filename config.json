@@ -9,7 +9,7 @@
     "num_timesteps_in_output_buffer": 500
   },
   "Job_Actor": {
-    "file_manager_path": "./fileManager.txt",
+    "file_manager_path": "fileManager.txt",
     "max_run_attempts": 1,
     "data_assimilation_mode": false,
     "batch_size": 10
