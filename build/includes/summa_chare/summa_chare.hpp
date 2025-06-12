@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include "SummaChare.decl.h"  // Include Charm++ declarations
+#include "SummaChare.decl.h"
 #include "timing_info.hpp"
 #include "settings_functions.hpp"
 #include "file_manager.hpp"

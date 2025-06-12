@@ -69,18 +69,16 @@ SummaChare::SummaChare(int start_gru, int num_gru,
     return;
   }
 
-  // Temporarily comment out global data initialization to isolate NetCDF crash
-  // global_fortran_state_ = std::make_unique<SummaGlobalData>();
-  // auto err = global_fortran_state_->defineGlobalData();
-  // if (err != 0)
-  // {
-  //   CkPrintf("ERROR--Global State: Unable To Define Global Data");
-  //   CkExit();
-  //   return;
-  // }
-  CkPrintf("Skipping global Fortran state initialization for debugging\n");
+  global_fortran_state_ = std::make_unique<SummaGlobalData>();
+  auto err = global_fortran_state_->defineGlobalData();
+  if (err != 0)
+  {
+    CkPrintf("ERROR--Global State: Unable To Define Global Data");
+    CkExit();
+    return;
+  }
 
-  int err = createLogDirectory();
+  err = createLogDirectory();
   if (err != 0)
   {
     CkPrintf("ERROR--Unable To Create Log Directory\n");

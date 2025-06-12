@@ -1,0 +1,29 @@
+module JobChare {
+  include "settings_functions.hpp";
+  include "batch.hpp";
+  
+  chare JobChare {
+    entry JobChare(Batch batch, bool enable_logging, 
+                   JobActorSettings job_settings,
+                   FileAccessActorSettings fa_settings,
+                   HRUActorSettings hru_settings,
+                   CkChareID parent);
+    
+    // File access initialization callback
+    entry void fileAccessReady(int num_timesteps);
+    
+    // GRU processing entry methods
+    entry void finishedGRU(int job_index);
+    entry void gruError(int err_code, int job_index, int timestep, std::string err_msg);
+    
+    // Async mode entries  
+    entry void gruAsyncUpdate(int job_index);
+    entry void retryGRU();
+    
+    // Finalization
+    entry void finalize();
+    
+    // Error reporting
+    entry void reportError(int err_code, std::string err_msg);
+  };
+}

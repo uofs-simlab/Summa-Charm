@@ -7,8 +7,8 @@
 #include <iomanip>
 #include <thread>
 #include "json.hpp"
-#include "pup.h"  // For Charm++ serialization
-#include "pup_stl.h"  // For STL container serialization
+#include "pup.h"
+#include "pup_stl.h"
 
 #define SUCCESS 0
 #define FAILURE -1

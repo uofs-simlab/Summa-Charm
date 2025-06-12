@@ -1,0 +1,12 @@
+module JobArray {
+  include "batch.hpp";
+  
+  array [1D] JobArray {
+    entry JobArray(Batch batch);
+    entry void initializeBatch(Batch batch);
+    entry void processGRU(int gru_id);
+    entry void finalize();
+    entry void fileAccessReady(int num_steps);
+    entry void handleError(int err_code, std::string err_msg);
+  };
+}

@@ -1,5 +1,5 @@
 #include "mainChare.decl.h"
-#include "summa_chare.hpp"  // Needed for complete class definition
+#include "summa_chare.hpp"
 #include "settings_functions.hpp"
 #include <cstring>
 #include <iostream>
@@ -115,8 +115,9 @@ public:
     // Note: SummaChare will call finishExecution() when it's done
   }
 
+  // Entry method called when simulation is complete
   void done() {
-    CkPrintf("Simulation complete.\n");
+    CkPrintf("Main: Simulation completed successfully!\n");
     CkExit();
   }
 };

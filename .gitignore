@@ -1,10 +1,21 @@
-# Build artifacts
-build/
+# Build artifacts - ignore build outputs but allow source files
+build/**/cmake_build/
+build/**/*.o
+build/**/*.so
+build/**/*.a
+build/**/*.mod
+build/**/*.exe
 *.o
 *.so
 *.a
 *.mod
 *.exe
+
+# Allow source files in build directory
+!build/includes/
+!build/source/
+!build/CMakeLists.txt
+!build/cmake/
 
 # CMake generated files
 CMakeCache.txt
