@@ -1,4 +1,10 @@
+// #include "distributed_settings.hpp"
+// #include "summa_actor_settings.hpp"
+// #include "file_access_actor_settings.hpp"
+// #include "job_actor_settings.hpp"
+// #include "hru_actor_settings.hpp"
 #include "settings_functions.hpp"
+
 
 
 int Settings::readSettings() {
