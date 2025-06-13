@@ -179,7 +179,9 @@ int SummaChare::spawnJob()
              current_batch_->getStartHRU(), 
              current_batch_->getNumHRU());
 
-    CProxy_JobArray job_array_proxy = CProxy_JobArray::ckNew(*current_batch_, thishandle, 1);
+    CProxy_JobArray job_array_proxy = CProxy_JobArray::ckNew(*current_batch_, thishandle, file_gru_, 1);
+
+    CkPrintf("Started JobArray");
 
     return 0;
 }

@@ -11,7 +11,7 @@
 #include "file_manager.hpp"
 #include "batch_container.hpp"
 #include "summa_global_data.hpp"
-#include "gru_struc_charm.hpp"
+#include "gru_struc.hpp"
 #include "summa_init_struc.hpp"
 #include "num_gru_info.hpp"
 #include "logger.hpp"

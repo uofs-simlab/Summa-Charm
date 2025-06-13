@@ -7,7 +7,7 @@
 #include "JobArray.decl.h"
 #include "FileAccessChare.decl.h"  // Need this for CProxy_FileAccessChare
 #include "timing_info.hpp"
-#include "gru_struc_charm.hpp"
+#include "gru_struc.hpp"
 #include "file_access_chare.hpp"
 #include "settings_functions.hpp"  // For FileAccessActorSettings
 #include "num_gru_info.hpp"  // For NumGRUInfo

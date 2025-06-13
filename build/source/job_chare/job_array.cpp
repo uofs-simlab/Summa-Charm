@@ -1,5 +1,5 @@
 #include "job_array.hpp"
-#include "gru_struc_charm.hpp"
+#include "gru_struc.hpp"
 #include "FileAccessChare.decl.h"
 #include "SummaChare.decl.h"  
 

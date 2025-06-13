@@ -1,4 +1,4 @@
-#include "gru_struc_charm.hpp"
+#include "gru_struc.hpp"
 #include <iostream>
 #include <memory>
 #include <algorithm>

@@ -83,13 +83,13 @@ set(FILE_ACCESS_CHARE
 set(JOB_CHARE
     ${JOB_CHARE_DIR}/gru_struc.f90  # Fortran interface file (exists)
     ${JOB_CHARE_DIR}/job_array.cpp  # C++ implementation for JobArray
+    ${JOB_CHARE_DIR}/gru_struc.cpp  # C++ implementation for GRU structures
     # ${JOB_CHARE_DIR}/job_chare.cpp  # Old JobChare (replaced by JobArray)
     # ${JOB_CHARE_DIR}/da_server_chare.cpp
     # ${JOB_CHARE_DIR}/da_client_chare.cpp
     # ${JOB_CHARE_DIR}/node_chare.cpp
     CACHE INTERNAL "JOB_CHARE")
 set(GRU_CHARE
-    ${GRU_CHARE_DIR}/gru_struc_charm.cpp  # C++ implementation for GRU structures
     # ${GRU_CHARE_DIR}/gru_chare.cpp
     # ${GRU_CHARE_DIR}/gru_batch_chare.cpp
     CACHE INTERNAL "GRU_CHARE")
