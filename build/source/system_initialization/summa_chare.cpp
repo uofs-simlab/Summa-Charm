@@ -1,6 +1,6 @@
 #include "summa_chare.hpp"
 #include "SummaChare.decl.h"
-#include "job_array.hpp"
+#include "job_chare.hpp"
 #include "json.hpp"
 #include <iostream>
 #include <fstream>
@@ -179,9 +179,16 @@ int SummaChare::spawnJob()
              current_batch_->getStartHRU(), 
              current_batch_->getNumHRU());
 
-    CProxy_JobArray job_array_proxy = CProxy_JobArray::ckNew(*current_batch_, thishandle, file_gru_, 1);
+    CProxy_JobChare job_chare_proxy = CProxy_JobChare::ckNew(*current_batch_, thishandle, file_gru_);
 
-    CkPrintf("Started JobArray");
+    // current_job_ = self_->spawn(,
+    //                           settings_.summa_actor_settings_.enable_logging_,
+    //                           settings_.job_actor_settings_, 
+    //                           settings_.fa_actor_settings_,
+    //                           settings_.hru_actor_settings_, self_);
+
+
+    CkPrintf("Started JobChare");
 
     return 0;
 }

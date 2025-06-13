@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include "JobArray.decl.h"
+#include "JobChare.decl.h"
 #include "FileAccessChare.decl.h"  // Need this for CProxy_FileAccessChare
 #include "timing_info.hpp"
 #include "gru_struc.hpp"
@@ -22,13 +22,13 @@
 // Forward declaration for Batch - we'll check if this exists later
 class Batch;
 
-class JobArray : public CBase_JobArray
+class JobChare : public CBase_JobChare
 {
 public:
     // Simplified constructor - takes batch and the chare ID
-    JobArray(Batch batch, CkChareID summa_chare_proxy, int file_gru);
+    JobChare(Batch batch, CkChareID summa_chare_proxy, int file_gru);
 
-    // Entry methods from JobArray.ci
+    // Entry methods from JobChare.ci
     void initializeBatch(Batch batch);
     void processGRU(int gru_id);
     void finalize();

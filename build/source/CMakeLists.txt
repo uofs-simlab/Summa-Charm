@@ -7,7 +7,7 @@
 set(CI_FILES
     ${CHARES_DIR}/main.ci
     ${CHARES_DIR}/SummaChare.ci
-    ${CHARES_DIR}/JobArray.ci
+    ${CHARES_DIR}/JobChare.ci
     ${CHARES_DIR}/FileAccessChare.ci
     CACHE INTERNAL "CI_FILES")
 
@@ -82,7 +82,7 @@ set(FILE_ACCESS_CHARE
     CACHE INTERNAL "FILE_ACCESS_CHARE")
 set(JOB_CHARE
     ${JOB_CHARE_DIR}/gru_struc.f90  # Fortran interface file (exists)
-    ${JOB_CHARE_DIR}/job_array.cpp  # C++ implementation for JobArray
+    ${JOB_CHARE_DIR}/job_chare.cpp  # C++ implementation for JobArray
     ${JOB_CHARE_DIR}/gru_struc.cpp  # C++ implementation for GRU structures
     # ${JOB_CHARE_DIR}/job_chare.cpp  # Old JobChare (replaced by JobArray)
     # ${JOB_CHARE_DIR}/da_server_chare.cpp

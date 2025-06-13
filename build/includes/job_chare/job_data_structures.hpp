@@ -28,7 +28,7 @@ class GRU;
 class FileAccessActor;
 
 /*********************************************
- * Job Array Data Structures
+ * Job Chare Data Structures
  *********************************************/
 // Holds information about the GRUs (adapted from CAF version)
 struct GRU_Container {

@@ -1,10 +1,10 @@
 module FileAccessChare {
   include "file_access_chare.hpp";
-  extern module JobArray;
+  extern module JobChare;
 
   chare FileAccessChare {
     entry FileAccessChare(NumGRUInfo num_gru_info, FileAccessActorSettings fa_settings);
-    entry [threaded] void initFileAccessChare(int file_gru, int num_hru, CProxy_JobArray job_array_proxy);
+    entry [threaded] void initFileAccessChare(int file_gru, int num_hru, CProxy_JobChare job_chare_proxy);
     entry void accessForcing(int iFile);
     entry void restartFailures();
     entry void finalize();

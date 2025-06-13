@@ -1,4 +1,4 @@
-#include "job_array.hpp"
+#include "job_chare.hpp"
 #include "gru_struc.hpp"
 #include "FileAccessChare.decl.h"
 #include "SummaChare.decl.h"  
@@ -7,13 +7,13 @@
 #include <unistd.h>
 #include <limits.h>
 
-JobArray::JobArray(Batch batch, CkChareID summa_chare_proxy, int file_gru)
+JobChare::JobChare(Batch batch, CkChareID summa_chare_proxy, int file_gru)
     : batch_(batch), file_gru_(file_gru), enable_logging_(false), default_tol_(true),
       num_steps_(0), timestep_(1), rel_tol_(0.0), abs_tol_(0.0),
       summa_chare_proxy_(summa_chare_proxy)
 {
-    CkPrintf("JobArray[%d]: Started initialization for batch with %d GRUs starting at %d\n", 
-             thisIndex, batch_.getNumHRU(), batch_.getStartHRU());
+    CkPrintf("JobChare: Started initialization for batch with %d GRUs starting at %d\n", 
+             batch_.getNumHRU(), batch_.getStartHRU());
     
     // Get hostname for logging
     gethostname(hostname_, HOST_NAME_MAX);
@@ -22,10 +22,10 @@ JobArray::JobArray(Batch batch, CkChareID summa_chare_proxy, int file_gru)
     initializeBatch(batch);
 }
 
-void JobArray::initializeBatch(Batch batch)
+void JobChare::initializeBatch(Batch batch)
 {
     std::string err_msg;
-    CkPrintf("JobArray[%d]: Starting initialization process...\n", thisIndex);
+    CkPrintf("JobChare: Starting initialization process...\n");
 
     // Timing Information (following CAF JobActor pattern)
     timing_info_ = TimingInfo();
@@ -34,20 +34,20 @@ void JobArray::initializeBatch(Batch batch)
     timing_info_.addTimePoint("init_duration");
     timing_info_.updateStartPoint("init_duration");
     
-    CkPrintf("JobArray[%d]: Timing info initialized\n", thisIndex);
+    CkPrintf("JobChare: Timing info initialized\n");
 
     // Create Loggers (simplified)
     if (enable_logging_) {
-        CkPrintf("JobArray[%d]: Logging enabled (placeholder)\n", thisIndex);
+        CkPrintf("JobChare: Logging enabled (placeholder)\n");
     } else {
-        CkPrintf("JobArray[%d]: Logging disabled\n", thisIndex);
+        CkPrintf("JobChare: Logging disabled\n");
     }
 
     // For now, set default tolerances
     rel_tol_ = 1e-6;
     abs_tol_ = 1e-6;
-    CkPrintf("JobArray[%d]: Using default tolerances: rel_tol=%e, abs_tol=%e\n", 
-             thisIndex, rel_tol_, abs_tol_);
+    CkPrintf("JobChare: Using default tolerances: rel_tol=%e, abs_tol=%e\n", 
+             rel_tol_, abs_tol_);
 
     // Create NumGRUInfo (from CAF JobActor::make_behavior())
     // Use the actual file_gru parameter passed from SummaChare
@@ -59,23 +59,23 @@ void JobArray::initializeBatch(Batch batch)
     fa_settings_ = FileAccessActorSettings(1, 2);  // Default values from CAF
 
     // Create FileAccessChare (following CAF JobActor pattern)
-    CkPrintf("JobArray[%d]: Creating FileAccessChare...\n", thisIndex);
+    CkPrintf("JobChare: Creating FileAccessChare...\n");
     file_access_chare_ = CProxy_FileAccessChare::ckNew(num_gru_info_, fa_settings_);
     
     // Initialize FileAccessChare with our proxy so it can call us back
     file_access_chare_.initFileAccessChare(file_gru_, batch_.getNumHRU(), thisProxy);  // Use actual file_gru
     
-    CkPrintf("JobArray[%d]: FileAccessChare spawned, waiting for initialization...\n", thisIndex);
+    CkPrintf("JobChare: FileAccessChare spawned, waiting for initialization...\n");
 }
 
 // New entry method for FileAccessChare callback
-void JobArray::fileAccessReady(int num_steps)
+void JobChare::fileAccessReady(int num_steps)
 {
-    CkPrintf("JobArray[%d]: FileAccessChare ready with %d timesteps\n", thisIndex, num_steps);
+    CkPrintf("JobChare: FileAccessChare ready with %d timesteps\n", num_steps);
     
     if (num_steps < 0) {
-        std::string err_msg = "ERROR: JobArray: FileAccessChare initialization failed\n";
-        CkPrintf("JobArray[%d]: %s", thisIndex, err_msg.c_str());
+        std::string err_msg = "ERROR: JobChare: FileAccessChare initialization failed\n";
+        CkPrintf("JobChare: %s", err_msg.c_str());
         handleError(-2, err_msg);
         return;
     }
@@ -83,31 +83,31 @@ void JobArray::fileAccessReady(int num_steps)
     num_steps_ = num_steps;
     
     timing_info_.updateEndPoint("init_duration");
-    CkPrintf("JobArray[%d]: Full initialization completed successfully!\n", thisIndex);
+    CkPrintf("JobChare: Full initialization completed successfully!\n");
     
     // Report completion
     double init_duration = timing_info_.getDuration("init_duration").value_or(-1.0);
-    CkPrintf("JobArray[%d]: Initialization took %f seconds\n", thisIndex, init_duration);
+    CkPrintf("JobChare: Initialization took %f seconds\n",  init_duration);
     
     // Now ready for simulation - in full implementation would spawn GRU actors
-    CkPrintf("JobArray[%d]: Ready for simulation with %d steps\n", thisIndex, num_steps_);
+    CkPrintf("JobChare: Ready for simulation with %d steps\n",  num_steps_);
     
     // For now, just proceed to finalize to test the workflow
     finalize();
 }
 
 // Entry method for error handling
-void JobArray::handleError(int err_code, std::string err_msg)
+void JobChare::handleError(int err_code, std::string err_msg)
 {
-    CkPrintf("JobArray[%d]: Error %d: %s\n", thisIndex, err_code, err_msg.c_str());
+    CkPrintf("JobChare: Error %d: %s\n",  err_code, err_msg.c_str());
     // TODO: Implement proper error handling and cleanup
     finalize();
 }
 
 // Entry method implementation for processGRU
-void JobArray::processGRU(int gru_id)
+void JobChare::processGRU(int gru_id)
 {
-    CkPrintf("JobArray[%d]: Processing GRU %d (placeholder)\n", thisIndex, gru_id);
+    CkPrintf("JobChare: Processing GRU %d (placeholder)\n", gru_id);
     
     // For now, this is a placeholder implementation
     // In a full implementation, this would trigger GRU simulation
@@ -116,31 +116,31 @@ void JobArray::processGRU(int gru_id)
 }
 
 // Entry method implementation for finalize
-void JobArray::finalize()
+void JobChare::finalize()
 {
     timing_info_.updateEndPoint("total_duration");
     
-    CkPrintf("JobArray[%d]: Finalizing...\n", thisIndex);
+    CkPrintf("JobChare: Finalizing...\n");
     
     double total_duration = timing_info_.getDuration("total_duration").value_or(-1.0);
     double init_duration = timing_info_.getDuration("init_duration").value_or(-1.0);
     
-    CkPrintf("JobArray[%d]: Timing results:\n", thisIndex);
+    CkPrintf("JobChare: Timing results:\n");
     CkPrintf("  Total Duration: %f seconds\n", total_duration);
     CkPrintf("  Init Duration: %f seconds\n", init_duration);
     
-    CkPrintf("JobArray[%d]: Finalization completed\n", thisIndex);
+    CkPrintf("JobChare: Finalization completed\n");
 
     // Notify the SummaChare that we're done
-    CkPrintf("JobArray[%d]: Notifying SummaChare of completion...\n", thisIndex);
+    CkPrintf("JobChare: Notifying SummaChare of completion...\n");
    
     CProxy_SummaChare summa_chare(summa_chare_proxy_);
     summa_chare.doneJob(0, total_duration, init_duration, 0.0);  // Placeholder values
    
 }
 
-void JobArray::pup(PUP::er &p) {
-    CBase_JobArray::pup(p);
+void JobChare::pup(PUP::er &p) {
+    CBase_JobChare::pup(p);
 
     // Serialize basic types only for now
     p | batch_;
@@ -159,4 +159,4 @@ void JobArray::pup(PUP::er &p) {
     // p | timing_info_;
 }
 
-#include "JobArray.def.h"
+#include "JobChare.def.h"
