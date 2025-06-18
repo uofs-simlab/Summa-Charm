@@ -30,7 +30,7 @@ class FileAccessActor;
 /*********************************************
  * Job Chare Data Structures
  *********************************************/
-// Holds information about the GRUs (adapted from CAF version)
+// Holds information about the GRUs
 struct GRU_Container {
     std::vector<GRU*> gru_list;
     std::chrono::time_point<std::chrono::system_clock> gru_start_time;
@@ -40,7 +40,7 @@ struct GRU_Container {
     int run_attempts_left = 1; // current run attempt for all grus
 };
 
-// Job state structure (adapted from CAF version)
+// Job state structure
 struct job_chare_state {
     TimingInfo job_timing;
     std::unique_ptr<Logger> logger;
@@ -48,8 +48,8 @@ struct job_chare_state {
     std::unique_ptr<SuccessLogger> success_logger;
     
     // Chare References (adapted from actor references)
-    CkChareID file_access_chare; // chare reference for the file_access_chare
-    CkChareID parent;            // chare reference to the top-level SummaChare
+    // CkChareID file_access_chare; // chare reference for the file_access_chare
+    // CkChareID parent;            // chare reference to the top-level SummaChare
 
     Batch batch; // Information about the number of HRUs and starting point 
 
@@ -79,7 +79,7 @@ struct job_chare_state {
     int num_steps = 0;
 };
 
-// Distributed job state structure (adapted from CAF version)
+// Distributed job state structure
 struct distributed_job_chare_state {
     TimingInfo job_timing;
 

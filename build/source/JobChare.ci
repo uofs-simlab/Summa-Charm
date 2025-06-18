@@ -1,8 +1,15 @@
 module JobChare {
   include "batch.hpp";
+  include "job_actor_settings.hpp";
+  include "file_access_actor_settings.hpp";
+  include "hru_actor_settings.hpp";
   
   chare JobChare {
-    entry JobChare(Batch batch, CkChareID summa_chare_proxy, int file_gru);
+    entry JobChare(Batch batch, bool enable_logging, 
+                   JobActorSettings job_actor_settings,
+                   FileAccessActorSettings fa_actor_settings,
+                   HRUActorSettings hru_actor_settings,
+                   CkChareID summa_chare_proxy, int file_gru);
     entry void processGRU(int gru_id);
     entry void finalize();
     entry void fileAccessReady(int num_steps);

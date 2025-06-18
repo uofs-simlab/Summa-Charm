@@ -82,28 +82,68 @@ subroutine f_readDimension(start_gru, num_gru, file_gru, file_hru, &
   ! read and set GRU dimensions
   ! **********************************************************************************************
   ! get gru dimension of whole file
-  err = nf90_inq_dimid(ncID,"gru",gruDimId);                   if(err/=nf90_noerr)then; message=trim(message)//'problem finding gru dimension/'//trim(nf90_strerror(err)); return; end if
-  err = nf90_inquire_dimension(ncID, gruDimId, len = file_gru); if(err/=nf90_noerr)then; message=trim(message)//'problem reading gru dimension/'//trim(nf90_strerror(err)); return; end if
+  err = nf90_inq_dimid(ncID,"gru",gruDimId)
+  if(err/=nf90_noerr)then
+    message=trim(message)//'problem finding gru dimension/'//trim(nf90_strerror(err))
+    return
+  end if
+  err = nf90_inquire_dimension(ncID, gruDimId, len = file_gru)
+  if(err/=nf90_noerr)then
+    message=trim(message)//'problem reading gru dimension/'//trim(nf90_strerror(err))
+    return
+  end if
 
   ! get hru dimension of whole file
-  err = nf90_inq_dimid(ncID,"hru",hruDimId);                   if(err/=nf90_noerr)then; message=trim(message)//'problem finding hru dimension/'//trim(nf90_strerror(err)); return; end if
-  err = nf90_inquire_dimension(ncID, hruDimId, len = file_hru); if(err/=nf90_noerr)then; message=trim(message)//'problem reading hru dimension/'//trim(nf90_strerror(err)); return; end if
+  err = nf90_inq_dimid(ncID,"hru",hruDimId)
+  if(err/=nf90_noerr)then
+    message=trim(message)//'problem finding hru dimension/'//trim(nf90_strerror(err))
+    return
+  end if
+  err = nf90_inquire_dimension(ncID, hruDimId, len = file_hru)
+  if(err/=nf90_noerr)then
+    message=trim(message)//'problem reading hru dimension/'//trim(nf90_strerror(err))
+    return
+  end if
 
   ! allocate space for GRU indices
   allocate(gru_id(file_gru))
   allocate(hru_ix(file_hru),hru_id(file_hru),hru2gru_id(file_hru))
 
   ! read gru_id from netcdf file
-  err = nf90_inq_varid(ncID,"gruId",varID);     if (err/=0) then; message=trim(message)//'problem finding gruId'; return; end if
-  err = nf90_get_var(ncID,varID,gru_id);        if (err/=0) then; message=trim(message)//'problem reading gruId'; return; end if
+  err = nf90_inq_varid(ncID,"gruId",varID)
+  if (err/=0) then
+    message=trim(message)//'problem finding gruId'
+    return
+  end if
+  err = nf90_get_var(ncID,varID,gru_id)
+  if (err/=0) then
+    message=trim(message)//'problem reading gruId'
+    return
+  end if
 
   ! read hru_id from netcdf file
-  err = nf90_inq_varid(ncID,"hruId",varID);     if (err/=0) then; message=trim(message)//'problem finding hruId'; return; end if
-  err = nf90_get_var(ncID,varID,hru_id);        if (err/=0) then; message=trim(message)//'problem reading hruId'; return; end if
+  err = nf90_inq_varid(ncID,"hruId",varID)
+  if (err/=0) then
+    message=trim(message)//'problem finding hruId'
+    return
+  end if
+  err = nf90_get_var(ncID,varID,hru_id)
+  if (err/=0) then
+    message=trim(message)//'problem reading hruId'
+    return
+  end if
 
   ! read hru2gru_id from netcdf file
-  err = nf90_inq_varid(ncID,"hru2gruId",varID); if (err/=0) then; message=trim(message)//'problem finding hru2gruId'; return; end if
-  err = nf90_get_var(ncID,varID,hru2gru_id);    if (err/=0) then; message=trim(message)//'problem reading hru2gruId'; return; end if
+  err = nf90_inq_varid(ncID,"hru2gruId",varID)
+  if (err/=0) then
+    message=trim(message)//'problem finding hru2gruId'
+    return
+  end if
+  err = nf90_get_var(ncID,varID,hru2gru_id)
+  if (err/=0) then
+    message=trim(message)//'problem reading hru2gruId'
+    return
+  end if
  
   ! close netcdf file
   call nc_file_close(ncID,err,cmessage)

@@ -49,4 +49,12 @@ public:
     str += "Batch Size: " + std::to_string(batch_size_) + "\n";
     return str;
   }
+
+  // Charm++ PUP serialization method
+  void pup(PUP::er &p) {
+    p | file_manager_path_;
+    p | max_run_attempts_;
+    p | data_assimilation_mode_;
+    p | batch_size_;
+  }
 };

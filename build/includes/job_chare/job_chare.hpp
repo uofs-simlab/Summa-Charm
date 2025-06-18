@@ -1,16 +1,25 @@
 #pragma once
 
+#include "JobChare.decl.h"
+#include "FileAccessChare.decl.h"
+#include "file_access_actor_settings.hpp" // For FileAccessActorSettings
+// #include "file_access_chare.hpp"
+// #include "gru_batch_actor.hpp"
+#include "gru_struc.hpp"
+#include "hru_actor_settings.hpp" // For HruActorSettings
+#include "job_actor_settings.hpp" // For JobActorSettings
+#include "json.hpp"
+#include "num_gru_info.hpp" // For NumGRUInfo
+#include "timing_info.hpp"
+#include "logger.hpp"
+#include "summa_init_struc.hpp" // For SummaInitStruc
+#include "gru_struc.hpp" // For GruStruc
+
+
 #include <chrono>
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
-#include "JobChare.decl.h"
-#include "FileAccessChare.decl.h"  // Need this for CProxy_FileAccessChare
-#include "timing_info.hpp"
-#include "gru_struc.hpp"
-#include "file_access_chare.hpp"
-#include "settings_functions.hpp"  // For FileAccessActorSettings
-#include "num_gru_info.hpp"  // For NumGRUInfo
 
 // For HOST_NAME_MAX
 #include <limits.h>
@@ -22,52 +31,125 @@
 // Forward declaration for Batch - we'll check if this exists later
 class Batch;
 
-class JobChare : public CBase_JobChare
-{
-public:
-    // Simplified constructor - takes batch and the chare ID
-    JobChare(Batch batch, CkChareID summa_chare_proxy, int file_gru);
-
-    // Entry methods from JobChare.ci
-    void initializeBatch(Batch batch);
-    void processGRU(int gru_id);
-    void finalize();
-    void fileAccessReady(int num_steps);  // New callback from FileAccessChare
-    void handleError(int err_code, std::string err_msg);  // Error handler
-
-    // PUP serialization method
-    void pup(PUP::er &p);
+class JobChare : public CBase_JobChare {
 
 private:
-    // Basic member variables for simplified implementation
-    Batch batch_;
-    char hostname_[HOST_NAME_MAX];
-    int file_gru_;  // File GRU parameter from SummaChare
-    
-    // Timing information 
-    TimingInfo timing_info_;
-    
-    // Basic settings
-    bool enable_logging_;
-    bool default_tol_;
-    
-    // Core SUMMA structures (from CAF JobActor)
-    std::unique_ptr<GruStruc> gru_struc_;
-    // std::unique_ptr<SummaInitStruc> summa_init_struc_;  // Comment out for now
-    
-    // FileAccessChare proxy and settings
-    CProxy_FileAccessChare file_access_chare_;
-    NumGRUInfo num_gru_info_;
-    FileAccessActorSettings fa_settings_;
-    
-    // Simulation state
-    int num_steps_;
-    int timestep_;
-    
-    // Tolerance values (from CAF JobActor)
-    double rel_tol_;
-    double abs_tol_;
+  int file_gru_; 
+  CkChareID summa_chare_proxy_;
+  CProxy_FileAccessChare file_access_chare_;
 
-    // SummaChare proxy as a CkChareID
-    CkChareID summa_chare_proxy_;
+  char hostname_[HOST_NAME_MAX];
+
+  TimingInfo timing_info_;
+  bool enable_logging_ = false;
+  std::unique_ptr<Logger> logger_;
+  std::unique_ptr<ErrorLogger> err_logger_;
+  std::unique_ptr<SuccessLogger> success_logger_;
+
+  Batch batch_;
+  std::unique_ptr<GruStruc> gru_struc_;
+  std::unique_ptr<SummaInitStruc> summa_init_struc_;
+  NumGRUInfo num_gru_info_;
+
+  // Settings
+  JobActorSettings job_actor_settings_;
+  FileAccessActorSettings fa_actor_settings_;
+  HRUActorSettings hru_actor_settings_;
+
+  // HRU Attributes
+  double rel_tol_ = -9999;
+  double abs_tol_ = -9999;
+  int dt_init_factor_ = 1;
+
+  // Misc
+  int num_steps_ = 0;
+  int iFile_ = 1;
+  int steps_in_ffile_ = 0;
+  int forcing_step_ = 1;
+  int timestep_ = 1;
+  int num_gru_done_timestep_ = 0;
+  int output_step_ = 1; // Index in the output structure
+  int num_write_msgs_ = 0;
+  bool da_paused_ = false;
+
+public:
+  // Simplified constructor - takes batch and the chare ID
+  JobChare(Batch batch, bool enable_logging,
+           JobActorSettings job_actor_settings,
+           FileAccessActorSettings fa_actor_settings,
+           HRUActorSettings hru_actor_settings,
+           CkChareID summa_chare_proxy, int file_gru);
+
+  void spawnGruActors();
+  void processGRU(int gru_id);  // Entry method from .ci file
+  void finalize();              // Entry method from .ci file
+  void fileAccessReady(int num_steps);  // Entry method from .ci file
+  // void spawnGruBatches();
+  // void processTimestep();
+  // void handleFinishedGRU(int job_index);
+  void finalizeJob();
+  // Error Handling Functions
+  void handleError(int err_code, std::string err_msg);  // Added missing method
+  void handleGRUError(int err_code, int job_index, int timestep,
+                      std::string &err_msg);
+  void handleFileAccessError(int err_code, std::string &err_msg);
+};
+
+
+
+/*********************************************
+ * Job Actor Data Structures
+ *********************************************/
+// Holds information about the GRUs
+struct GRU_Container {
+  std::vector<GRU*> gru_list;
+  std::chrono::time_point<std::chrono::system_clock> gru_start_time; // Vector of start times for each GRU
+  int num_gru_done = 0; 
+  int num_gru_failed = 0; // number of grus that are waiting to be restarted
+  int num_gru_in_run_domain = 0; // number of grus we are currently solving for
+  int run_attempts_left = 1; // current run attempt for all grus
+};
+
+
+/*********************************************
+ * Job Actor state variables
+ *********************************************/
+struct job_state {
+  TimingInfo job_timing;
+  std::unique_ptr<Logger> logger;
+  std::unique_ptr<ErrorLogger> err_logger;
+  std::unique_ptr<SuccessLogger> success_logger;
+  // Actor References
+  CkChareID file_access_actor; // actor reference for the file_access_actor
+  CkChareID parent;            // actor reference to the top-level SummaActor
+
+  Batch batch; // Information about the number of HRUs and starting point 
+
+  // TODO: gru_struc can contain the num_gru_info and be the gru_container
+  std::unique_ptr<GruStruc> gru_struc; 
+  NumGRUInfo num_gru_info;
+  GRU_Container gru_container;
+
+  std::unique_ptr<SummaInitStruc> summa_init_struc;
+
+  // Variables for GRU monitoring
+  int dt_init_start_factor = 1; // Initial Factor for dt_init (coupled_em)
+  int num_gru_done = 0;         // The number of GRUs that have completed
+  int num_gru_failed = 0;       // Number of GRUs that have failed
+
+  
+  std::string hostname;
+
+  
+  FileAccessActorSettings file_access_actor_settings;
+  JobActorSettings job_actor_settings; 
+  HRUActorSettings hru_actor_settings;
+
+  // Forcing information
+  int iFile = 1; // index of current forcing file from forcing file list
+  int stepsInCurrentFFile;
+  int forcingStep = 1;
+  int timestep = 1;
+  int num_gru_done_timestep = 0;
+  int num_steps = 0;
 };

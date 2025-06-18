@@ -5,8 +5,12 @@
 #include <vector>
 #include <memory>
 #include "timing_info.hpp"
+#include "distributed_settings.hpp"
+#include "summa_actor_settings.hpp"
+#include "file_access_actor_settings.hpp"
+#include "job_actor_settings.hpp"
+#include "hru_actor_settings.hpp"
 #include "file_manager.hpp"
-#include "settings_functions.hpp"
 #include "batch_container.hpp"
 #include "summa_global_data.hpp"
 #include "SummaChare.decl.h"
@@ -22,8 +26,47 @@ public:
   void doneJob(int num_gru_failed, double job_duration, double read_duration, double write_duration);
   void reportError(int err_code, std::string err_msg);
 
+  template <typename T>
+  std::optional<T> getSettings(json settings, std::string key_1,
+                               std::string key_2)
+  {
+    try
+    {
+      if (settings.find(key_1) != settings.end())
+      {
+        json key_1_settings = settings[key_1];
+
+        // find value behind second key
+        if (key_1_settings.find(key_2) != key_1_settings.end())
+        {
+          return key_1_settings[key_2];
+        }
+        else
+          return {};
+      }
+      else
+      {
+        return {}; // return none in the optional (error value)
+      }
+    }
+    catch (json::exception &e)
+    {
+      std::cout << e.what() << "\n"
+                << key_1 << "\n"
+                << key_2 << "\n";
+      return {};
+    }
+  }
+
+  std::optional<std::vector<std::string>> getSettingsArray(
+      json settings, std::string key_1, std::string key_2);
+
 private:
-  Settings settings_;
+  DistributedSettings distributed_settings_;
+  SummaActorSettings summa_actor_settings_;
+  FileAccessActorSettings fa_actor_settings_;
+  JobActorSettings job_actor_settings_;
+  HRUActorSettings hru_actor_settings_;
   TimingInfo timing_info_;
   int start_gru_;
   int num_gru_;
@@ -38,9 +81,11 @@ private:
   std::unique_ptr<BatchContainer> batch_container_;
   std::shared_ptr<Batch> current_batch_;
   std::unique_ptr<SummaGlobalData> global_fortran_state_;
-  CkChareID current_job_;
   
+  int readSettings(std::string config_file);
+  void printSettings();
   int spawnJob();
+  void simulateJobProcessing();
   int createLogDirectory();
   void finalize();
 };

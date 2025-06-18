@@ -45,4 +45,12 @@ public:
     str += "Rel Tol: " + std::to_string(rel_tol_) + "\n";
     return str;
   }
+
+  // Charm++ PUP serialization method
+  void pup(PUP::er &p) {
+    p | print_output_;
+    p | output_frequency_;
+    p | abs_tol_;
+    p | rel_tol_;
+  }
 };

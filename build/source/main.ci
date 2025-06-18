@@ -1,7 +1,6 @@
 mainmodule mainChare {
   extern module SummaChare;
-  extern module JobChare;
-  extern module FileAccessChare;
+
   
   mainchare Main {
     entry Main(CkArgMsg *m);

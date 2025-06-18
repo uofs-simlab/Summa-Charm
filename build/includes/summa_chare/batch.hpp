@@ -1,8 +1,8 @@
 #pragma once
-// #include "caf/all.hpp"  // Comment out CAF for Charm++ version
 #include <string>
 #include <iostream>
 #include <fstream>
+#include "charm++.h"
 #include "pup.h"        // For Charm++ serialization
 #include "pup_stl.h"    // For STL serialization
 
@@ -45,24 +45,9 @@ class Batch {
 
     std::string toString();
 
-    // CAF-specific method - commented out for Charm++ version
-    // void assignToActor(std::string hostname, caf::actor assigned_actor);
+    // specific method - commented out for Charm++ version
+    void assignToActor(std::string hostname, CkChareID assigned_actor);
 
-
-    // CAF inspector for serialization
-    template <class Inspector>
-    friend bool inspect(Inspector& inspector, Batch& batch) {
-        return inspector.object(batch).fields(
-                    inspector.field("batch_id", batch.batch_id_), 
-                    inspector.field("start_hru", batch.start_hru_),
-                    inspector.field("num_hru", batch.num_hru_),
-                    inspector.field("run_time", batch.run_time_),
-                    inspector.field("read_time", batch.read_time_),
-                    inspector.field("write_time", batch.write_time_),
-                    inspector.field("assigned_to_actor", batch.assigned_to_actor_),
-                    inspector.field("solved", batch.solved_),
-                    inspector.field("log_dir", batch.log_dir_));
-    }
 
     // Charm++ PUP serialization method
     void pup(PUP::er &p) {
