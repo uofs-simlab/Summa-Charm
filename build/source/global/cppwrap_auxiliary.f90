@@ -50,4 +50,3 @@ use data_types
      
 end module cppwrap_auxiliary
 
-

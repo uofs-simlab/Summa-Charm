@@ -2699,4 +2699,3 @@ end subroutine delete_handle_gru_type
 
 end module cppwrap_datatypes
 
-
