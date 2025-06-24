@@ -43,9 +43,11 @@ JobChare::JobChare(Batch batch, bool enable_logging,
   }
 
   // GruStruc Initialization
+  CkPrintf("JobChare: Initializing GruStruc for Batch %d", batch_.getBatchID());
   gru_struc_ =
       std::make_unique<GruStruc>(batch_.getStartHRU(), batch_.getNumHRU(),
                                  job_actor_settings_.max_run_attempts_);
+  CkPrintf("JobChare: GruStruc initialized\n");
   if (gru_struc_->readDimension()) {
     err_msg = "ERROR: Job_Actor - ReadDimension\n";
     CProxy_SummaChare(summa_chare_proxy_).reportError(-2, err_msg);
@@ -56,10 +58,14 @@ JobChare::JobChare(Batch batch, bool enable_logging,
     CProxy_SummaChare(summa_chare_proxy_).reportError(-2, err_msg);
     return;
   }
+  CkPrintf("JobChare: GruStruc readDimension and readIcondNlayers completed\n");
   gru_struc_->getNumHrusPerGru();
+
 
   // SummaInitStruc Initialization
   summa_init_struc_ = std::make_unique<SummaInitStruc>();
+  CkPrintf("JobChare: Initializing SummaInitStruc for Batch %d",
+           batch_.getBatchID());
   if (summa_init_struc_->allocate(batch_.getNumHRU()) != 0) {
     err_msg = "ERROR -- Job_Actor: SummaInitStruc allocation failed\n";
     CProxy_SummaChare(summa_chare_proxy_).reportError(-2, err_msg);
@@ -75,6 +81,8 @@ JobChare::JobChare(Batch batch, bool enable_logging,
     CProxy_SummaChare(summa_chare_proxy_).reportError(-2, err_msg);
     return;
   }
+
+  CkPrintf("JobChare: SummaInitStruc initialized\n");
   summa_init_struc_->getInitTolerance(rel_tol_, abs_tol_);
 
   num_gru_info_ =

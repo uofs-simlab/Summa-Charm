@@ -1,7 +1,7 @@
 #include "gru_struc.hpp"
+#include <algorithm>
 #include <iostream>
 #include <memory>
-#include <algorithm>
 #include <numeric>
 
 GruStruc::GruStruc(int start_gru, int num_gru, int num_retry_attempts) {
@@ -13,29 +13,41 @@ GruStruc::GruStruc(int start_gru, int num_gru, int num_retry_attempts) {
 
 // gru_struc is set up in fortran here
 int GruStruc::readDimension() {
-  int err = 0; 
+  CkPrintf("readDimension: 0\n");
+  int err = 0;
   int file_gru, file_hru;
-  std::unique_ptr<char[]> err_msg(new char[256]);
-  
-  f_readDimension(start_gru_, num_gru_, file_gru, file_hru, err, 
-                  err_msg.get());
-  if (err != 0) { 
-    std::cout << "ERROR: GruStruc - ReadDimension()\n";
-    std::cout << err_msg.get() << "\n";
+  void *err_msg_ptr = nullptr;
+  f_readDimension(start_gru_, num_gru_, file_gru, file_hru, err, &err_msg_ptr);
+
+  if (err_msg_ptr) {
+    const char *msg = static_cast<const char *>(err_msg_ptr);
+    std::cout << "Fortran error message: " << msg << std::endl;
   }
+
+  // std::unique_ptr<char[]> err_msg(new char[256]);
+  // f_readDimension(start_gru_, num_gru_, file_gru, file_hru, err,
+  // err_msg.get());
+
+  CkPrintf("readDimension: 2\n");
+  // if (err != 0) {
+  //   std::cout << "ERROR: GruStruc - ReadDimension()\n";
+  //   // std::cout << err_msg.get() << "\n";
+  // }
   file_gru_ = file_gru;
   file_hru_ = file_hru;
 
   // Index of GRU struc must always start at 1
-  std::vector<int> indices(num_gru_);
-  std::iota(indices.begin(), indices.end(), 1);
-  
-  // Set HRU count for each GRU (sequential version for Charm++)
-  std::for_each(indices.begin(), indices.end(), 
-    [=](int i) { 
-      f_setHruCount(i, start_gru_); 
-  });
-  
+  std::vector<int> indicies(num_gru_);
+  std::iota(indicies.begin(), indicies.end(), 1);
+
+#ifdef TBB_ACTIVE
+  std::for_each(std::execution::par, indicies.begin(), indicies.end(),
+                [=](int i) { f_setHruCount(i, start_gru_); });
+#else
+  std::for_each(indicies.begin(), indicies.end(),
+                [=](int i) { f_setHruCount(i, start_gru_); });
+#endif
+
   f_setIndexMap();
   f_getNumHru(num_hru_);
 
@@ -44,11 +56,14 @@ int GruStruc::readDimension() {
 
 int GruStruc::readIcondNlayers() {
   int err = 0;
-  std::unique_ptr<char[]> err_msg(new char[256]);
-  f_readIcondNlayers(num_gru_, err, err_msg.get());
-  if (err != 0) { 
+  void *err_msg_ptr = nullptr;
+  f_readIcondNlayers(num_gru_, err, &err_msg_ptr);
+  if (err != 0) {
     std::cout << "ERROR: GruStruc - ReadIcondNlayers\n";
-    std::cout << err_msg.get() << "\n";
+    if (err_msg_ptr) {
+      const char *msg = static_cast<const char *>(err_msg_ptr);
+      std::cout << msg << "\n";
+    }
   }
 
   return err;
@@ -66,16 +81,16 @@ int GruStruc::getFailedIndex() {
 void GruStruc::getNumHrusPerGru() {
   num_hru_per_gru_.resize(num_gru_, 0);
   if (num_gru_ > 0) {
-    f_getNumHruPerGru(num_gru_, num_hru_per_gru_[0]);
+    f_getNumHruPerGru(num_gru_, num_hru_per_gru_.data());
   }
 }
 
 int GruStruc::setNodeGruInfo(int num_nodes) {
   node_gru_info_.clear();
-  
+
   int gru_per_node = (num_gru_ + num_nodes - 1) / num_nodes;
   int remaining = num_gru_;
-  
+
   for (int i = 0; i < num_nodes; i++) {
     int node_start_gru = i * gru_per_node + start_gru_;
     int node_num_gru = gru_per_node;
@@ -83,9 +98,9 @@ int GruStruc::setNodeGruInfo(int num_nodes) {
       node_num_gru = remaining;
     }
     remaining -= node_num_gru;
-    
-    node_gru_info_.push_back(NodeGruInfo(
-        node_start_gru, start_gru_, node_num_gru, num_gru_, file_gru_));
+
+    node_gru_info_.push_back(NodeGruInfo(node_start_gru, start_gru_,
+                                         node_num_gru, num_gru_, file_gru_));
   }
 
   return 0;

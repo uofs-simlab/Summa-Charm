@@ -7,13 +7,13 @@
 
 // Forward declarations
 extern "C" {
-    void f_readDimension(int start_gru, int num_gru, int& file_gru, int& file_hru, 
-                        int& err, char* err_msg);
-    void f_setHruCount(int i, int start_gru);
+    void f_readDimension(int& start_gru, int& num_gru, int& file_gru, int& file_hru, 
+                        int& err, void** err_msg);
+    void f_setHruCount(int& i, int& start_gru);
     void f_setIndexMap();
     void f_getNumHru(int& num_hru);
-    void f_readIcondNlayers(int num_gru, int& err, char* err_msg);
-    void f_getNumHruPerGru(int num_gru, int& num_hru_per_gru_first);
+    void f_readIcondNlayers(int& num_gru, int& err, void** err_msg);
+    void f_getNumHruPerGru(int& num_gru, int* num_hru_per_gru_array);
 }
 
 // Enum for GRU state
@@ -147,6 +147,13 @@ private:
     int num_hru_;
     int num_retry_attempts_left_;
     
+    
+ 
+    // Runtime status of the GRUs
+    int num_gru_done_ = 0;
+    int num_gru_failed_ = 0;
+    int attempt_ = 1;
+
     std::vector<int> num_hru_per_gru_;
     std::vector<NodeGruInfo> node_gru_info_;
     std::vector<std::unique_ptr<GRUInfo>> gru_info_;

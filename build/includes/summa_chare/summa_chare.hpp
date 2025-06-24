@@ -15,13 +15,12 @@
 #include "summa_global_data.hpp"
 #include "SummaChare.decl.h"
 
-
 class SummaChare : public CBase_SummaChare
 {
 public:
   SummaChare(int start_gru, int num_gru, std::string config_file,
              std::string master_file, std::string output_file_suffix);
-  
+
   // Entry methods
   void doneJob(int num_gru_failed, double job_duration, double read_duration, double write_duration);
   void reportError(int err_code, std::string err_msg);
@@ -76,16 +75,16 @@ private:
   std::string config_file_;
   std::string output_file_suffix_;
   std::string log_folder_;
+  CkChareID current_job_;
 
   std::unique_ptr<FileManager> file_manager_;
   std::unique_ptr<BatchContainer> batch_container_;
   std::shared_ptr<Batch> current_batch_;
   std::unique_ptr<SummaGlobalData> global_fortran_state_;
-  
+
   int readSettings(std::string config_file);
   void printSettings();
   int spawnJob();
-  void simulateJobProcessing();
   int createLogDirectory();
   void finalize();
 };

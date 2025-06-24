@@ -1,8 +1,8 @@
 #pragma once
 extern "C" {
-  void f_allocate(int& num_gru, int& err, void* message);
-  void f_paramSetup(int& err, void* message);
-  void f_readRestart(int& err, void* message);
+  void f_allocate(int& num_gru, int& err, void** message);
+  void f_paramSetup(int& err, void** message);
+  void f_readRestart(int& err, void** message);
   void f_getInitTolerance(double& rtol, double& atol);
   void f_deallocateInitStruc();
 }
