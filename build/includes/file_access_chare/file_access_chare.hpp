@@ -56,7 +56,8 @@ public:
   FileAccessChare(NumGRUInfo num_gru_info, FileAccessActorSettings fa_settings, CkChareID parent_proxy);
   FileAccessChare(CkMigrateMessage *msg) : num_gru_info_(), fa_settings_() {};
 
-  void initFileAccessChare(int file_gru, int num_hru);
+  int initFileAccessChare(const int file_gru, int num_hru);
+  int getNumOutputSteps(int job_index);
   void accessForcing(int iFile);
   void restartFailures();
   void finalize();

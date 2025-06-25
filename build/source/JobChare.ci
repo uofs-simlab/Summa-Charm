@@ -1,4 +1,6 @@
 module JobChare {
+  extern module FileAccessChare;
+  extern module GruChare;
   include "batch.hpp";
   include "job_actor_settings.hpp";
   include "file_access_actor_settings.hpp";

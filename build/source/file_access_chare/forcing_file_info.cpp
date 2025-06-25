@@ -30,39 +30,22 @@ int forcingFileContainer::initForcingFiles() {
   int err = 0;
   std::unique_ptr<char[]> message(new char[256]);
   
-  CkPrintf("FileAccessChare: About to call getNumFrocingFiles_fortran...\n");
   // initalize the fortran side - NOTE: This may crash if forcFileInfo is not allocated
-  try {
-    getNumFrocingFiles_fortran(num_files);
-    CkPrintf("FileAccessChare: getNumFrocingFiles_fortran returned num_files=%d\n", num_files);
-  } catch (...) {
-    CkPrintf("FileAccessChare: Exception caught in getNumFrocingFiles_fortran\n");
-    file_access_timing_.updateEndPoint("init_duration");
-    return -1;
-  }
-  
-  if (num_files <= 0) {
-    CkPrintf("FileAccessChare: No forcing files found (num_files=%d)\n", num_files);
+  getNumFrocingFiles_fortran(num_files);
+  if (err != 0){
+    CkPrintf("Error initializing forcing files: %s\n", message.get());
     file_access_timing_.updateEndPoint("init_duration");
     return -1;
   }
 
-  CkPrintf("FileAccessChare: About to resize forcing_files_ to %d\n", num_files);
+
   forcing_files_.resize(num_files);
-  CkPrintf("FileAccessChare: forcing_files_ resized successfully\n");
 
   for (int i = 1; i < num_files+1; i++) {
-    CkPrintf("FileAccessChare: Processing file %d of %d\n", i, num_files);
-    
     int var_ix_size = 0;
     int data_id_size = 0;
     int varName_size = 0;
-    
-    CkPrintf("FileAccessChare: About to call getFileInfoSizes_fortran for file %d\n", i);
     getFileInfoSizes_fortran(i, var_ix_size, data_id_size, varName_size);
-    CkPrintf("FileAccessChare: getFileInfoSizes_fortran returned: var_ix_size=%d, data_id_size=%d, varName_size=%d\n", 
-             var_ix_size, data_id_size, varName_size);
-    
     forcing_files_[i-1].var_ix.resize(var_ix_size);
     forcing_files_[i-1].data_id.resize(data_id_size);
     forcing_files_[i-1].varName.resize(varName_size);

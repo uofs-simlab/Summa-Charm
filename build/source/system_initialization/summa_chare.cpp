@@ -102,7 +102,7 @@ void SummaChare::doneJob(int num_gru_failed, double job_duration,
     finalize();
     return;
   }
-
+  // TODO: Implement a way to reuse the current jobChare instead of spawning new
   if (spawnJob() != 0) {
     CkPrintf("ERROR--Unable to spawn next job\n");
     CkExit();

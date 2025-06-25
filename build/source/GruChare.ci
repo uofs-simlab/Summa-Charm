@@ -1,0 +1,9 @@
+module GruChare {
+  extern module FileAccessChare;
+  extern module JobChare;
+  include "hru_actor_settings.hpp";
+  
+  chare GruChare {
+    entry GruChare(int netcdf_index, int job_index, int num_steps, HRUActorSettings hru_actor_settings, int num_output_steps, CkChareID file_access_actor, CkChareID parent);
+  };
+};

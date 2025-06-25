@@ -1,5 +1,8 @@
 mainmodule mainChare {
   extern module SummaChare;
+  extern module JobChare;
+  extern module GruChare;
+  extern module FileAccessChare;
 
   
   mainchare Main {

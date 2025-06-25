@@ -9,6 +9,7 @@ set(CI_FILES
     ${CHARES_DIR}/SummaChare.ci
     ${CHARES_DIR}/JobChare.ci
     ${CHARES_DIR}/FileAccessChare.ci
+    ${CHARES_DIR}/GruChare.ci
     CACHE INTERNAL "CI_FILES")
 
 # Chares interface modules
@@ -56,7 +57,7 @@ set(DATAMS_CHARES
     CACHE INTERNAL "DATAMS_CHARES")
 
 set(CHARES_GLOBAL
-    # ${CHARES_DIR}/global/auxiliary.cpp
+    ${CHARES_DIR}/global/auxiliary.cpp
     ${CHARES_DIR}/global/file_manager.cpp
     ${CHARES_DIR}/global/settings_functions.cpp
     ${CHARES_DIR}/global/timing_info.cpp
@@ -89,7 +90,7 @@ set(JOB_CHARE
     # ${JOB_CHARE_DIR}/node_chare.cpp
     CACHE INTERNAL "JOB_CHARE")
 set(GRU_CHARE
-    # ${GRU_CHARE_DIR}/gru_chare.cpp
+    ${GRU_CHARE_DIR}/gru_chare.cpp
     # ${GRU_CHARE_DIR}/gru_batch_chare.cpp
     CACHE INTERNAL "GRU_CHARE")
 set(HRU_CHARE

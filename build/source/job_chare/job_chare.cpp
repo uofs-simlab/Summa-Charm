@@ -1,4 +1,5 @@
 #include "FileAccessChare.decl.h"  // Include this first to resolve CBase_FileAccessChare
+#include "GruChare.decl.h"  // Include this first to resolve CBase_GruChare
 #include "job_chare.hpp"
 #include "SummaChare.decl.h"
 #include "gru_struc.hpp"
@@ -43,11 +44,9 @@ JobChare::JobChare(Batch batch, bool enable_logging,
   }
 
   // GruStruc Initialization
-  CkPrintf("JobChare: Initializing GruStruc for Batch %d", batch_.getBatchID());
   gru_struc_ =
       std::make_unique<GruStruc>(batch_.getStartHRU(), batch_.getNumHRU(),
                                  job_actor_settings_.max_run_attempts_);
-  CkPrintf("JobChare: GruStruc initialized\n");
   if (gru_struc_->readDimension()) {
     err_msg = "ERROR: Job_Actor - ReadDimension\n";
     CProxy_SummaChare(summa_chare_proxy_).reportError(-2, err_msg);
@@ -58,14 +57,11 @@ JobChare::JobChare(Batch batch, bool enable_logging,
     CProxy_SummaChare(summa_chare_proxy_).reportError(-2, err_msg);
     return;
   }
-  CkPrintf("JobChare: GruStruc readDimension and readIcondNlayers completed\n");
   gru_struc_->getNumHrusPerGru();
 
 
   // SummaInitStruc Initialization
   summa_init_struc_ = std::make_unique<SummaInitStruc>();
-  CkPrintf("JobChare: Initializing SummaInitStruc for Batch %d",
-           batch_.getBatchID());
   if (summa_init_struc_->allocate(batch_.getNumHRU()) != 0) {
     err_msg = "ERROR -- Job_Actor: SummaInitStruc allocation failed\n";
     CProxy_SummaChare(summa_chare_proxy_).reportError(-2, err_msg);
@@ -81,8 +77,6 @@ JobChare::JobChare(Batch batch, bool enable_logging,
     CProxy_SummaChare(summa_chare_proxy_).reportError(-2, err_msg);
     return;
   }
-
-  CkPrintf("JobChare: SummaInitStruc initialized\n");
   summa_init_struc_->getInitTolerance(rel_tol_, abs_tol_);
 
   num_gru_info_ =
@@ -97,13 +91,13 @@ JobChare::JobChare(Batch batch, bool enable_logging,
 
   // Start File Access Actor and Become User Selected Mode
 
-  // file_access_chare_ = CProxy_FileAccessChare::ckNew(
-  //     num_gru_info_, fa_actor_settings_, thishandle);
+  file_access_chare_ = CProxy_FileAccessChare::ckNew(
+      num_gru_info_, fa_actor_settings_, thishandle);
 
  
-  // file_access_chare_.initFileAccessChare(file_gru_, batch_.getNumHRU());
+  int num_timesteps = file_access_chare_.initFileAccessChare(file_gru_, batch_.getNumHRU());
 
-  int num_timesteps = 10;
+  // int num_timesteps = 10;
   if (num_timesteps < 0) {
     std::string err_msg =
         "ERROR: JobChare: FileAccessChare initialization failed\n";
@@ -118,22 +112,53 @@ JobChare::JobChare(Batch batch, bool enable_logging,
   // Start JobActor in User Selected Mode
   logger_->log("JobActor Initialized");
   CkPrintf("JobActor Initialized: Running %d Steps\n", num_timesteps);
-
   logger_->log("Async Mode: File Access Actor Ready");
+
+  //TODO: Implement the data assimilation mode logic if needed
   num_steps_ = num_timesteps;
   spawnGruActors();
 }
 
 // ------------------------ Member Functions ------------------------
 void JobChare::spawnGruActors() {
+  CkPrintf("JobChare: Spawning GRU Actors\n");
+  // TODO: Implement f_getRelTol and f_getAbsTol
+  if (hru_actor_settings_.rel_tol_ > 0) {
+    // f_getRelTol();
+    rel_tol_ = hru_actor_settings_.rel_tol_;
+  }
 
-  CkPrintf("JobChare: Spawning GRU Actors...\n");
-  finalizeJob();
+  if (hru_actor_settings_.abs_tol_ > 0) {
+    // f_getAbsTol();
+    abs_tol_ = hru_actor_settings_.abs_tol_;
+  }
+
+  CkChareID fileAccessChareID = file_access_chare_.ckGetChareID();
+
+  int num_gru = gru_struc_->getNumGru();
+  CkPrintf("JobChare: About to create %d GRU actors\n", num_gru);
+
+  for (int i = 0; i < num_gru; i++) {
+    auto netcdf_index = gru_struc_->getStartGru() + i;
+    auto job_index = i + 1;
+
+
+    CProxy_GruChare gru_chare_proxy =
+        CProxy_GruChare::ckNew(netcdf_index, job_index, num_steps_, hru_actor_settings_,
+        fa_actor_settings_.num_timesteps_in_output_buffer_, fileAccessChareID, thishandle);
+    // std::unique_ptr<GRU> gru_obj = std::make_unique<GRU>(
+    //     netcdf_index, job_index, gru_chare_proxy, dt_init_factor_, rel_tol_,
+    //     abs_tol_, job_actor_settings_.max_run_attempts_);
+    // gru_struc_->addGRU(std::move(gru_obj));
+  }
+  gru_struc_->decrementRetryAttempts();
 }
 
 // Entry method implementation for processGRU
 void JobChare::processGRU(int gru_id) {
-  CkPrintf("JobChare: Processing GRU %d\n", gru_id);
+  counter_++;
+  if (counter_ == gru_struc_->getNumGru()) 
+      finalizeJob();  // Finalize if all GRUs are processed
   // TODO: Implement GRU processing logic
 }
 

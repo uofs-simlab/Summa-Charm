@@ -34,6 +34,7 @@ class Batch;
 class JobChare : public CBase_JobChare {
 
 private:
+  int counter_ = 0; // Counter for the number of GRUs processed
   int file_gru_; 
   CkChareID summa_chare_proxy_;
   CProxy_FileAccessChare file_access_chare_;
