@@ -97,8 +97,6 @@ public:
       }
     }
 
-    //   self->spawn(actor_from_state<SummaActor>, startGRU, countGRU, settings,
-    //   self);
     // start the SummaChare with the given settings
     CkPrintf("Now we can spawn the SummaChare.\n");
     CProxy_SummaChare summaChareProxy = CProxy_SummaChare::ckNew(

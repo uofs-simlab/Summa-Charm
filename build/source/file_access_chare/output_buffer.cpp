@@ -135,7 +135,7 @@ int OutputBuffer::findPartitionIndex(int index) {
 
 
 // Reconstruction of the partitions for rerunning failed GRUs
-void OutputBuffer::reconstruct() {
+int OutputBuffer::reconstruct() {
   // clear all partitons
   partitions_.clear();
 
@@ -145,6 +145,7 @@ void OutputBuffer::reconstruct() {
     partitions_.push_back(std::make_unique<OutputPartition>(
         gru, 1, num_buffer_steps_, num_timesteps_));
   }
+  return 0;
 }
 
 

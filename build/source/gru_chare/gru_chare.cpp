@@ -42,33 +42,122 @@ GruChare::GruChare(int netcdf_index, int job_index,
         return;
     }
 
-    
     f_setGruTolerances(gru_data_.get(), hru_actor_settings_.rel_tol_,
                        hru_actor_settings_.abs_tol_);
 
     // TODO: Implement data assimilation mode if needed
-    CProxy_FileAccessChare file_access_actor_proxy(file_access_actor_);
-    int output_steps = file_access_actor_proxy.getNumOutputSteps(job_index_);
+    int output_steps = CProxy_FileAccessChare(file_access_actor_).getNumOutputSteps(job_index_);
     num_steps_until_write_ = output_steps;
-
-
-    // call the job chare
-    CProxy_JobChare job_chare(parent_);
-    job_chare.processGRU(1);
-
-
-    // accessForcing(iFile_, thishandle);
-
-    //         self_->mail(access_forcing_v, iFile_, self_).
-    //             send(file_access_actor_);
+    CProxy_FileAccessChare(file_access_actor_).accessForcing(iFile_, thishandle);
 }
 
-// void GruChare::run()
-// {
-//     is_running_ = true;
-//     CkPrintf("GruChare[%d]: Starting simulation run\n", gru_index_);
-//     processStep();
-// }
+void GruChare::newForcingFile(int num_forc_steps, int iFile)
+{
+    int err;
+    std::unique_ptr<char[]> message(new char[256]);
+    iFile_ = iFile;
+    stepsInCurrentFFile_ = num_forc_steps;
+    setTimeZoneOffsetGRU_fortran(iFile_, gru_data_.get(), err, &message);
+    if (err != 0)
+    {
+        CkPrintf("GRU Actor: Error setting time zone offset");
+        CkExit();
+        return;
+    }
+    forcingStep_ = 1;
+    runHRU();
+}
+
+void GruChare::setNumStepsBeforeWrite(int num_steps)
+{
+    num_steps_until_write_ = num_steps;
+    output_step_ = 1;
+}
+
+void GruChare::runHRU()
+{
+    int err = 0;
+    std::unique_ptr<char[]> message(new char[256]);
+    while (num_steps_until_write_ > 0)
+    {
+        if (forcingStep_ > stepsInCurrentFFile_)
+        {
+            CProxy_FileAccessChare(file_access_actor_).accessForcing(iFile_ + 1, thishandle);
+            break;
+        }
+        num_steps_until_write_--;
+        if (hru_actor_settings_.print_output_ &&
+            timestep_ % hru_actor_settings_.output_frequency_ == 0)
+        {
+            CkPrintf("GRU Chare %d: timestep=%d, forcingStep=%d, iFile=%d\n",
+                     job_index_, timestep_, forcingStep_, iFile_);
+        }
+        readGRUForcing_fortran(job_index_, timestep_, forcingStep_, iFile_,
+                               gru_data_.get(), err, &message);
+        if (err != 0)
+        {
+            handleErr(err, message);
+            return;
+        }
+        std::fill(message.get(), message.get() + 256, '\0'); // Clear message
+        runGRU_fortran(job_index_, timestep_, gru_data_.get(), dt_init_factor_,
+                       err, &message);
+        if (err != 0)
+        {
+            handleErr(err, message);
+            return;
+        }
+        std::fill(message.get(), message.get() + 256, '\0'); // Clear message
+        writeGRUOutput_fortran(job_index_, timestep_, output_step_,
+                               gru_data_.get(), err, &message);
+        if (err != 0)
+        {
+            handleErr(err, message);
+            return;
+        }
+
+        timestep_++;
+        forcingStep_++;
+        output_step_++;
+
+        if (timestep_ > num_steps_)
+        {
+            doneHRU();
+            break;
+        }
+    }
+    // Our output structure is full
+    if (num_steps_until_write_ <= 0)
+    {
+        CProxy_FileAccessChare(file_access_actor_).writeOutput(job_index_, thishandle);
+    }
+}
+
+void GruChare::handleErr(int err, std::unique_ptr<char[]> &message)
+{
+    CkPrintf("GRU Actor %d-%d: Error running GRU at timestep %d",
+             job_index_, netcdf_index_, timestep_);
+    // int local_err = 0;
+    // std::unique_ptr<char[]> local_message(new char[256]);
+    // f_fillOutputWithErrs(job_index_, timestep_, output_step_, gru_data_.get(),
+    //                      local_err, &local_message);
+    CProxy_JobChare(parent_).handleGruChareError(job_index_, timestep_, err, message.get());
+}
+
+
+
+void GruChare::doneHRU()
+{
+    CProxy_JobChare(parent_).doneHRU(job_index_);
+}
+
+
+void GruChare::updateHRU()
+{
+    int output_steps = CProxy_FileAccessChare(file_access_actor_).getNumOutputSteps(job_index_);
+    num_steps_until_write_ = output_steps;
+    CProxy_FileAccessChare(file_access_actor_).accessForcing(iFile_, thishandle);
+}
 
 // void GruChare::updateTimeZoneOffset(int iFile)
 // {
@@ -91,22 +180,7 @@ GruChare::GruChare(int netcdf_index, int job_index,
 //     }
 // }
 
-// void GruChare::updateHRU(int timestep, int forcing_step, int output_step)
-// {
-//     timestep_ = timestep;
-//     forcing_step_ = forcing_step;
-//     output_step_ = output_step;
 
-//     if (is_running_)
-//     {
-//         processStep();
-//     }
-// }
-
-// void GruChare::setNumStepsBeforeWrite(int num_steps)
-// {
-//     num_steps_before_write_ = num_steps;
-// }
 
 // void GruChare::processStep()
 // {
@@ -173,15 +247,7 @@ GruChare::GruChare(int netcdf_index, int job_index,
 //     handleCompletion();
 // }
 
-// void GruChare::handleCompletion()
-// {
-//     GruCompletionInfo completion_info;
-//     completion_info.gru_index = gru_index_;
-//     completion_info.timestep = timestep_;
-//     completion_info.success = true;
 
-//     parent_.reportGruCompletion(completion_info);
-// }
 
 // void GruChare::exit()
 // {

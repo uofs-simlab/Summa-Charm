@@ -14,16 +14,11 @@ extern "C" {
     void f_getNumHru(int& num_hru);
     void f_readIcondNlayers(int& num_gru, int& err, void** err_msg);
     void f_getNumHruPerGru(int& num_gru, int* num_hru_per_gru_array);
+    void f_deallocateGruStruc();
 }
 
 // Enum for GRU state
-enum class gru_state {
-    pending,
-    running,
-    succeeded,
-    failed,
-    retry
-};
+enum class gru_state { running, failed, succeeded };
 
 
 /** Gru Information (meant to mimic gru_struc)*/
@@ -98,63 +93,69 @@ struct NodeGruInfo {
           node_num_gru_(node_num_gru), num_gru_(num_gru), file_gru_(file_gru) {}
 };
 
-// Forward declaration for GRU info class
-class GRUInfo {
-public:
-    virtual ~GRUInfo() = default;
-    virtual gru_state getStatus() const = 0;
-    virtual int getIndexJob() const = 0;
-};
-
 // Main GruStruc class
 class GruStruc {
-public:
-    // Constructor
-    GruStruc(int start_gru, int num_gru, int num_retry_attempts);
-    
-    // Destructor
-    virtual ~GruStruc() = default;
-    
-    // Public methods
-    int readDimension();
-    int readIcondNlayers();
-    int getFailedIndex();
-    void getNumHrusPerGru();
-    int setNodeGruInfo(int num_nodes);
-    std::string getNodeGruInfoString();
-    
-    // Getters
-    int getStartGru() const { return start_gru_; }
-    int getNumGru() const { return num_gru_; }
-    int getFileGru() const { return file_gru_; }
-    int getFileHru() const { return file_hru_; }
-    int getNumHru() const { return num_hru_; }
-    int getRetryAttemptsLeft() const { return num_retry_attempts_left_; }
-    
-    const std::vector<int>& getNumHruPerGru() const { return num_hru_per_gru_; }
-    const std::vector<NodeGruInfo>& getNodeGruInfo() const { return node_gru_info_; }
-    const std::vector<std::unique_ptr<GRUInfo>>& getGruInfo() const { return gru_info_; }
-    
-    // Setters/Modifiers
-    void decrementRetryAttempts() { if (num_retry_attempts_left_ > 0) num_retry_attempts_left_--; }
-
-private:
-    // Member variables
+    private:
+    // Inital Information about the GRUs
     int start_gru_;
     int num_gru_;
+    int num_hru_;
     int file_gru_;
     int file_hru_;
-    int num_hru_;
-    int num_retry_attempts_left_;
     
-    
- 
+    // GRU specific Information
+    std::vector<std::unique_ptr<GRU>> gru_info_;
+    std::vector<NodeGruInfo> node_gru_info_;
+
+  
     // Runtime status of the GRUs
     int num_gru_done_ = 0;
     int num_gru_failed_ = 0;
+    int num_retry_attempts_left_ = 0;
     int attempt_ = 1;
 
+    // todo: check if this is necessary
     std::vector<int> num_hru_per_gru_;
-    std::vector<NodeGruInfo> node_gru_info_;
-    std::vector<std::unique_ptr<GRUInfo>> gru_info_;
+
+public:
+    GruStruc(int start_gru, int num_gru, int num_retry_attempts);
+    ~GruStruc(){f_deallocateGruStruc();};
+    int readDimension();
+    int readIcondNlayers();
+
+    // Set the gru information for each node participating in data assimilation
+    int setNodeGruInfo(int num_nodes);
+    std::string getNodeGruInfoString();
+    inline NodeGruInfo getNodeGruInfo(int index) {
+      return node_gru_info_[index];
+    }
+
+    inline std::vector<std::unique_ptr<GRU>>& getGruInfo() { return gru_info_; }
+    inline int getStartGru() const { return start_gru_; }
+    inline int getNumGru() const { return num_gru_; }
+    inline int getFileGru() const { return file_gru_; }
+    inline int getNumHru() const { return num_hru_; }
+    inline int getGruInfoSize() const { return gru_info_.size(); }
+    inline int getNumGruDone() const { return num_gru_done_; }
+    inline int getNumGruFailed() const { return num_gru_failed_; }
+
+    inline void addGRU(std::unique_ptr<GRU> gru) {
+      gru_info_.push_back(std::move(gru));
+    }
+
+    inline void incrementNumGruDone() { num_gru_done_++; }
+    inline void incrementNumGruFailed() { num_gru_failed_++; num_gru_done_++;}
+    inline void decrementRetryAttempts() { num_retry_attempts_left_--; }
+    inline void decrementNumGruFailed() { num_gru_failed_--; num_gru_done_--;}
+    inline GRU* getGRU(int index) { return gru_info_[index-1].get(); }
+
+    inline bool isDone() { return num_gru_done_ >= num_gru_; }
+    inline bool hasFailures() { return num_gru_failed_ > 0; }
+    inline bool shouldRetry() { return num_retry_attempts_left_ > 0; }
+
+    int getFailedIndex(); 
+    void getNumHrusPerGru();
+
+    // todo: check if this is necessary
+    inline int getNumHruPerGru(int index) { return num_hru_per_gru_[index]; }
 };

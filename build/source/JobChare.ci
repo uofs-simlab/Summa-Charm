@@ -16,5 +16,10 @@ module JobChare {
     entry void finalize();
     entry void fileAccessReady(int num_steps);
     entry void handleError(int err_code, std::string err_msg);
+    entry void handleGruChareError(int job_index, int timestep, int err_code, std::string err_msg);
+    entry void handleFinishedGRU(int job_index);
+    entry void handleGRUError(int err_code, int job_index, int timestep, std::string err_msg);
+    entry void restartFailures();
+    entry void doneHRU(int job_index);
   };
 }

@@ -5,5 +5,10 @@ module GruChare {
   
   chare GruChare {
     entry GruChare(int netcdf_index, int job_index, int num_steps, HRUActorSettings hru_actor_settings, int num_output_steps, CkChareID file_access_actor, CkChareID parent);
+    entry void newForcingFile(int num_forc_steps, int iFile);
+    entry void setNumStepsBeforeWrite(int num_steps);
+    entry void runHRU();
+    entry void doneHRU();
+    entry void updateHRU();
   };
 };

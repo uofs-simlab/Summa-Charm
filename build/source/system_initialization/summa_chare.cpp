@@ -124,7 +124,7 @@ void SummaChare::reportError(int err_code, const std::string err_msg) {
 // TODO: Implement this in a way that is usable with Charm++
 /*
 [this](const down_msg& dm) {
-      self_->println("Lost Connection With A Connected Actor\nReason: {}",
+      CkPrintf("Lost Connection With A Connected Actor\nReason: %s\n",
                    to_string(dm.reason));
     }
 */
@@ -185,8 +185,8 @@ int SummaChare::createLogDirectory() {
 }
 
 void SummaChare::finalize() {
-  CkPrintf("All Batches Finished\n{}",
-           batch_container_->getAllBatchInfoString());
+  CkPrintf("All Batches Finished\n%s",
+           batch_container_->getAllBatchInfoString().c_str());
 
   timing_info_.updateEndPoint("total_duration");
 
@@ -198,12 +198,12 @@ void SummaChare::finalize() {
   double write_dur_sec = batch_container_->getTotalWriteTime();
 
   CkPrintf("\n________________SUMMA INFO________________\n"
-                 "Total Duration = {} Seconds\n"
-                 "Total Duration = {} Minutes\n"
-                 "Total Duration = {} Hours\n"
-                 "Total Read Duration = {} Seconds\n"
-                 "Total Write Duration = {} Seconds\n"
-                 "Num Failed = {}\n"
+                 "Total Duration = %f Seconds\n"
+                 "Total Duration = %f Minutes\n"
+                 "Total Duration = %f Hours\n"
+                 "Total Read Duration = %f Seconds\n"
+                 "Total Write Duration = %f Seconds\n"
+                 "Num Failed = %d\n"
                  "___________________Program Finished__________________\n",
                  total_dur_sec, total_dur_min, total_dur_hr, read_dur_sec,
                  write_dur_sec, num_gru_failed_);

@@ -155,7 +155,7 @@ class OutputBuffer {
     const std::optional<WriteOutputReturn*> writeOutput(
         int index_gru, CkChareID gru);
     const int writeOutputDA(const int output_step);
-    void reconstruct();
+    int reconstruct();
     int findPartitionIndex(int index);
 
 

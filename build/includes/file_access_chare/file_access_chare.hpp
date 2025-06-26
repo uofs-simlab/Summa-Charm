@@ -36,7 +36,7 @@ private:
   TimingInfo timing_info_;
   NumGRUInfo num_gru_info_;
   FileAccessActorSettings fa_settings_;
-  CkChareID parent_;
+  CkChareID job_chare_proxy_;
 
   int start_gru_;
   int num_gru_;
@@ -58,10 +58,13 @@ public:
 
   int initFileAccessChare(const int file_gru, int num_hru);
   int getNumOutputSteps(int job_index);
-  void accessForcing(int iFile);
-  void restartFailures();
+  void accessForcing(int i_file, CkChareID gru_chare);
+  void runFailure(int index_gru_job);
   void finalize();
   void error(int err_code, std::string err_msg);
+  int restartFailures();
+  void accessForcingInternal(int i_file);
+  void writeOutput(int index_gru, CkChareID gru_chare);
 
   // Migration support
   void pup(PUP::er &p) override {

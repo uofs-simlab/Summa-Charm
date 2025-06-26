@@ -68,16 +68,18 @@ public:
     GruChare(CkMigrateMessage *m) {}
     ~GruChare() {}
 
+    void newForcingFile(int num_forc_steps, int iFile);
+    void setNumStepsBeforeWrite(int num_steps);
+    void runHRU();
+    void handleErr(int err, std::unique_ptr<char[]> &message);
+    void doneHRU();
+    void updateHRU();
+
     // std::vector<HRU> serializeGRU();
     // void deserializeGRU(std::vector<HRU> &hrus);
 
-    // void handleErr(int err, std::unique_ptr<char[]> &message);
 
-    // void run();
     // void updateTimeZoneOffset(int iFile);
-    // void updateHRU(int timestep, int forcing_step, int output_step);
-    // void setNumStepsBeforeWrite(int num_steps);
     // void exit();
     // void processStep();
-    // void handleCompletion();
 };

@@ -87,13 +87,17 @@ public:
   void fileAccessReady(int num_steps);  // Entry method from .ci file
   // void spawnGruBatches();
   // void processTimestep();
-  // void handleFinishedGRU(int job_index);
+  void doneHRU(int job_index);
+  void handleFinishedGRU(int job_index); 
   void finalizeJob();
+  void restartFailures();
   // Error Handling Functions
   void handleError(int err_code, std::string err_msg);  // Added missing method
-  void handleGRUError(int err_code, int job_index, int timestep,
-                      std::string &err_msg);
-  void handleFileAccessError(int err_code, std::string &err_msg);
+  void handleGruChareError(int job_index, int timestep, int err_code,
+                              std::string err_msg);
+  void handleGRUError(int err_code, int job_index, int timestep, 
+                              std::string err_msg);
+  void handleFileAccessError(int err_code, std::string err_msg);
 };
 
 
