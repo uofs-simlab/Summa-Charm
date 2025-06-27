@@ -3892,6 +3892,7 @@ build/summa/
 build/modules/
 bin/summa_chare.exe
 utils/dependencies/
+fileManager
 *.mod
 *.o
 core

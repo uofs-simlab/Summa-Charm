@@ -30,17 +30,31 @@ FileAccessChare::FileAccessChare(NumGRUInfo num_gru_info,
   }
 }
 
-int FileAccessChare::initFileAccessChare(int file_gru, int num_hru)
+void FileAccessChare::initFileAccessChare(int file_gru, int num_hru)
 {
   int err = 0;
-  CkPrintf("File Access Actor: Initializing\n");
+  CkPrintf("File Access Actor: Initializing on PE %d\n", CkMyPe());
   num_hru_ = num_hru;
 
-  f_getNumTimeSteps(num_steps_);
+  // Note: Fortran global data structures (including forcFileInfo) are already 
+  // initialized by JobChare, so we can directly access them here.
+  CkPrintf("File Access Actor: Using already initialized Fortran data structures\n");
 
+  CkPrintf("File Access Actor: Getting number of time steps\n");
+  f_getNumTimeSteps(num_steps_);
+  CkPrintf("File Access Actor: Number of Steps = %d\n", num_steps_);
+
+  CkPrintf("File Access Actor: Creating forcing file container\n");
   forcing_files_ = std::make_unique<forcingFileContainer>();
+  
+  CkPrintf("File Access Actor: Initializing forcing files\n");
   if (forcing_files_->initForcingFiles() != 0)
-    return -1;
+  {
+    // Report error to JobChare
+    CProxy_JobChare(job_chare_proxy_).handleGruChareError(0, 0, -1, "Failed to initialize forcing files");
+    return;
+  }
+  CkPrintf("File Access Actor: Forcing files initialized successfully\n"); 
 
   // Initialize output buffer
   output_buffer_ = std::make_unique<OutputBuffer>(
@@ -54,13 +68,15 @@ int FileAccessChare::initFileAccessChare(int file_gru, int num_hru)
   {
     CkPrintf("File Access Actor: Error defOutput\n"
              "\tMessage = Can't define output file\n");
-    CkExit();
-    return err;
+    CProxy_JobChare(job_chare_proxy_).handleGruChareError(0, 0, err, "Can't define output file");
+    return;
   }
   err = output_buffer_->allocateOutputBuffer(num_steps_);
 
   timing_info_.updateEndPoint("init_duration");
-  return num_steps_;
+  
+  // Notify JobChare that initialization is complete
+  CProxy_JobChare(job_chare_proxy_).fileAccessReady(num_steps_);
 }
 
 int FileAccessChare::getNumOutputSteps(int job_index)

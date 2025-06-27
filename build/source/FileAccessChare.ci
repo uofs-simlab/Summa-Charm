@@ -4,7 +4,7 @@ module FileAccessChare {
 
   chare FileAccessChare {
     entry FileAccessChare(NumGRUInfo num_gru_info, FileAccessActorSettings fa_settings, CkChareID job_chare_proxy);
-    entry [sync] int initFileAccessChare(const int file_gru, int num_hru);
+    entry void initFileAccessChare(const int file_gru, int num_hru);
     entry [sync] int getNumOutputSteps(int job_index);
     entry void accessForcing(int iFile, CkChareID gru_chare);
     entry void runFailure(int index_gru_job);

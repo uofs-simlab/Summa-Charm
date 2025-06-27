@@ -20,7 +20,7 @@ JobChare::JobChare(Batch batch, bool enable_logging,
       hru_actor_settings_(hru_actor_settings)
 {
   std::string err_msg;
-  CkPrintf("JobChare: Started");
+  CkPrintf("JobChare: Started on PE %d\n", CkMyPe());
 
   // Get hostname for logging
   gethostname(hostname_, HOST_NAME_MAX);
@@ -99,33 +99,15 @@ JobChare::JobChare(Batch batch, bool enable_logging,
   }
 
   // Start File Access Actor and Become User Selected Mode
+  // NOTE: FileAccessChare must be created after summa_init_struc setup is complete
+  // because initFileAccessChare() depends on forcFileInfo being allocated in summa_paramSetup()
+  // Force FileAccessChare to run on the same PE as JobChare to avoid distributed memory issues
 
   file_access_chare_ = CProxy_FileAccessChare::ckNew(
-      num_gru_info_, fa_actor_settings_, thishandle);
+      num_gru_info_, fa_actor_settings_, thishandle, CkMyPe());
 
-  int num_timesteps = file_access_chare_.initFileAccessChare(file_gru_, batch_.getNumHRU());
-
-  // int num_timesteps = 10;
-  if (num_timesteps < 0)
-  {
-    std::string err_msg =
-        "ERROR: JobChare: FileAccessChare initialization failed\n";
-    CkPrintf("JobChare: %s", err_msg.c_str());
-    // this->handleError(-2, err_msg);
-    CProxy_SummaChare(summa_chare_proxy_).reportError(-2, err_msg);
-    return;
-  }
-
-  timing_info_.updateEndPoint("init_duration");
-
-  // Start JobActor in User Selected Mode
-  logger_->log("JobActor Initialized");
-  CkPrintf("JobActor Initialized: Running %d Steps\n", num_timesteps);
-  logger_->log("Async Mode: File Access Actor Ready");
-
-  // TODO: Implement the data assimilation mode logic if needed
-  num_steps_ = num_timesteps;
-  spawnGruActors();
+  // Call initFileAccessChare asynchronously - response will come via fileAccessReady()
+  file_access_chare_.initFileAccessChare(file_gru_, batch_.getNumHRU());
 }
 
 // ------------------------ Member Functions ------------------------
@@ -155,9 +137,10 @@ void JobChare::spawnGruActors()
     auto netcdf_index = gru_struc_->getStartGru() + i;
     auto job_index = i + 1;
 
+    // Force GruChare to run on the same PE as JobChare to access global Fortran data
     CProxy_GruChare gru_chare_proxy =
         CProxy_GruChare::ckNew(netcdf_index, job_index, num_steps_, hru_actor_settings_,
-                               fa_actor_settings_.num_timesteps_in_output_buffer_, fileAccessChareID, thishandle);
+                               fa_actor_settings_.num_timesteps_in_output_buffer_, fileAccessChareID, thishandle, CkMyPe());
     std::unique_ptr<GRU> gru_obj = std::make_unique<GRU>(
         netcdf_index, job_index, dt_init_factor_, rel_tol_,
         abs_tol_, job_actor_settings_.max_run_attempts_);
@@ -186,7 +169,26 @@ void JobChare::finalize()
 void JobChare::fileAccessReady(int num_steps)
 {
   CkPrintf("JobChare: File access ready with %d steps\n", num_steps);
-  // TODO: Implement file access ready logic
+  
+  if (num_steps < 0)
+  {
+    std::string err_msg =
+        "ERROR: JobChare: FileAccessChare initialization failed\n";
+    CkPrintf("JobChare: %s", err_msg.c_str());
+    CProxy_SummaChare(summa_chare_proxy_).reportError(-2, err_msg);
+    return;
+  }
+
+  timing_info_.updateEndPoint("init_duration");
+
+  // Start JobActor in User Selected Mode
+  logger_->log("JobActor Initialized");
+  CkPrintf("JobActor Initialized: Running %d Steps\n", num_steps);
+  logger_->log("Async Mode: File Access Actor Ready");
+
+  // TODO: Implement the data assimilation mode logic if needed
+  num_steps_ = num_steps;
+  spawnGruActors();
 }
 
 // Implementation method for finalization
