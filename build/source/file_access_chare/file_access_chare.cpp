@@ -188,10 +188,21 @@ void FileAccessChare::writeOutput(int index_gru, CkChareID gru_chare)
   timing_info_.updateEndPoint("write_duration");
 }
 
-void FileAccessChare::finalize()
+std::tuple<double, double> FileAccessChare::finalize()
 {
-  CkPrintf("FileAccessChare: Finalizing\n");
-  // TODO: Implement finalization
+  CkPrintf("\n________________" 
+                     "FILE_ACCESS_ACTOR TIMING INFO RESULTS________________\n"
+                     "Total Read Duration = %f\n"
+                     "Total Write Duration = %f\n"
+                     "\n__________________________________________________\n",
+                     forcing_files_->getReadDuration(),
+                     timing_info_.getDuration("write_duration").value_or(-1.0));
+      
+      output_buffer_.reset();
+
+      return std::make_tuple(forcing_files_->getReadDuration(),
+                             timing_info_.getDuration("write_duration")
+                             .value_or(-1.0));   
 }
 
 void FileAccessChare::error(int err_code, std::string err_msg)

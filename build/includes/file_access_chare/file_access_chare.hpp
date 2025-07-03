@@ -60,7 +60,7 @@ public:
   int getNumOutputSteps(int job_index);
   void accessForcing(int i_file, CkChareID gru_chare);
   void runFailure(int index_gru_job);
-  void finalize();
+  std::tuple<double, double> finalize();
   void error(int err_code, std::string err_msg);
   int restartFailures();
   void accessForcingInternal(int i_file);

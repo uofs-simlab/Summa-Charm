@@ -9,7 +9,7 @@ module FileAccessChare {
     entry void accessForcing(int iFile, CkChareID gru_chare);
     entry void runFailure(int index_gru_job);
     entry [sync] int restartFailures();
-    entry void finalize();
+    entry [sync] std::tuple<double, double> finalize();
     entry void error(int err_code, std::string err_msg);
     entry void writeOutput(int index_gru, CkChareID gru_chare);
   };
