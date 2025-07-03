@@ -192,27 +192,37 @@ void JobChare::fileAccessReady(int num_steps)
 // Implementation method for finalization
 void JobChare::finalizeJob()
 {
+  std::tuple<double, double> read_write_duration = file_access_chare_.finalize();
+  CkPrintf("read_write_duration = (%f, %f)\n",
+          std::get<0>(read_write_duration), std::get<1>(read_write_duration));
+  int err = 0;
+  auto num_failed_grus = gru_struc_->getNumGruFailed();
+  CkPrintf("JobChare: Finalizing job with %d failed GRUs\n", num_failed_grus);
   timing_info_.updateEndPoint("total_duration");
+  // CkPrintf(
+  //     "\n_____________PRINTING JOB_ACTOR TIMING INFO RESULTS____________\n"
+  //     "Total Duration = %f Seconds\n"
+  //     "Total Duration = %f Minutes\n"
+  //     "Total Duration = %f Hours\n"
+  //     "Job Init Duration = %f Seconds\n"
+  //     "_________________________________________________________________\n\n",
+  //     timing_info_.getDuration("total_duration").value_or(-1.0),
+  //     timing_info_.getDuration("total_duration").value_or(-1.0) / 60,
+  //     (timing_info_.getDuration("total_duration").value_or(-1.0) / 60) / 60,
+  //     timing_info_.getDuration("init_duration").value_or(-1.0));
 
-  CkPrintf("JobChare: Finalizing...\n");
+  // Deallocate GRU_Struc
+  gru_struc_.reset();
+  summa_init_struc_.reset();
 
-  double total_duration =
-      timing_info_.getDuration("total_duration").value_or(-1.0);
-  double init_duration =
-      timing_info_.getDuration("init_duration").value_or(-1.0);
+  // Tell Parent we are done
+  auto total_duration = timing_info_.getDuration("total_duration").value_or(-1.0);
+  CkPrintf("Total Duration = %f Seconds\n", total_duration);
+  CProxy_SummaChare(summa_chare_proxy_).doneJob(num_failed_grus, total_duration,
+                             std::get<0>(read_write_duration),
+                             std::get<1>(read_write_duration));
 
-  CkPrintf("JobChare: Timing results:\n");
-  CkPrintf("  Total Duration: %f seconds\n", total_duration);
-  CkPrintf("  Init Duration: %f seconds\n", init_duration);
-
-  CkPrintf("JobChare: Finalization completed\n");
-
-  // Notify the SummaChare that we're done
-  CkPrintf("JobChare: Notifying SummaChare of completion...\n");
-
-  CProxy_SummaChare summa_chare(summa_chare_proxy_);
-  summa_chare.doneJob(0, total_duration, init_duration,
-                      0.0); // Placeholder values
+  CkPrintf("JobChare: Finalized successfully\n");
 }
 
 void JobChare::doneHRU(int job_index)
