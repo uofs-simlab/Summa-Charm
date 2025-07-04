@@ -119,8 +119,7 @@ class GruStruc {
 
 public:
     GruStruc(int start_gru, int num_gru, int num_retry_attempts);
-    ~GruStruc(){};
-    // ~GruStruc(){f_deallocateGruStruc();};
+    ~GruStruc(){f_deallocateGruStruc();};
 
     int readDimension();
     int readIcondNlayers();
