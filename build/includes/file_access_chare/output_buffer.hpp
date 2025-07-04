@@ -142,9 +142,7 @@ class OutputBuffer {
       }
     };
 
-    ~OutputBuffer() {
-      f_deallocateOutputBuffer(handle_ncid_.get());
-    };
+    ~OutputBuffer() {f_deallocateOutputBuffer(handle_ncid_.get());};
 
     int getNumStepsBuffer(int gru_index);
 

@@ -22,8 +22,7 @@ SummaChare::SummaChare(int start_gru, int num_gru, std::string config_file,
       num_gru_failed_(0), master_file_(master_file), config_file_(config_file),
       output_file_suffix_(output_file_suffix) {
 
-  CkPrintf("Starting SUMMA Chare: start_gru=%d, num_gru=%d\n", start_gru,
-           num_gru);
+  CkPrintf("Starting SUMMA Chare: start_gru=%d, num_gru=%d\n", start_gru, num_gru);
 
   readSettings(config_file_);
   printSettings();
@@ -75,15 +74,13 @@ SummaChare::SummaChare(int start_gru, int num_gru, std::string config_file,
 
   CkPrintf("Log directory created: %s\n", log_folder_.c_str());
 
-  batch_container_ = std::make_unique<BatchContainer>(
-      start_gru_, num_gru_, summa_actor_settings_.max_gru_per_job_,
-      log_folder_);
+  batch_container_ = std::make_unique<BatchContainer>(start_gru_, num_gru_,
+    summa_actor_settings_.max_gru_per_job_, log_folder_);
   CkPrintf("\n\nStarting SUMMA Chare with %d Batches\n\n",
            batch_container_->getBatchesRemaining());
 
   if (spawnJob() != 0) {
     CkPrintf("ERROR--Summa_Actor: Unable To Spawn Job\n");
-    CkExit();
     return;
   }
 }
@@ -138,7 +135,6 @@ int SummaChare::spawnJob() {
   std::optional<Batch> batch = batch_container_->getUnsolvedBatch();
   if (!batch.has_value()) {
     CkPrintf("No more batches to process. Finalizing...\n");
-    finalize();
     return -1;
   }
   current_batch_ = std::make_shared<Batch>(batch.value());
@@ -188,7 +184,7 @@ int SummaChare::createLogDirectory() {
   }
 }
 
-void SummaChare::finalize() {
+void SummaChare::finalize() { 
   CkPrintf("All Batches Finished\n%s",
            batch_container_->getAllBatchInfoString().c_str());
 
@@ -215,26 +211,6 @@ void SummaChare::finalize() {
   CkExit();
 }
 
-template <typename T>
-std::optional<T> getSettings(json settings, std::string key_1,
-                             std::string key_2) {
-  try {
-    if (settings.find(key_1) != settings.end()) {
-      json key_1_settings = settings[key_1];
-
-      // find value behind second key
-      if (key_1_settings.find(key_2) != key_1_settings.end()) {
-        return key_1_settings[key_2];
-      } else
-        return {};
-    } else {
-      return {}; // return none in the optional (error value)
-    }
-  } catch (json::exception &e) {
-    std::cout << e.what() << "\n" << key_1 << "\n" << key_2 << "\n";
-    return {};
-  }
-}
 
 int SummaChare::readSettings(std::string config_file) {
   std::ifstream settings_file(config_file);
@@ -288,15 +264,12 @@ int SummaChare::readSettings(std::string config_file) {
 }
 
 void SummaChare::printSettings() {
-  std::cout << "************ DISTRIBUTED_SETTINGS ************\n"
-            << distributed_settings_.toString() << "\n"
-            << "************ SUMMA_ACTORS SETTINGS ************\n"
-            << summa_actor_settings_.toString() << "\n"
-            << "************ FILE_ACCESS_ACTOR SETTINGS ************\n"
-            << fa_actor_settings_.toString() << "\n"
-            << "************ JOB_ACTOR SETTINGS ************\n"
-            << job_actor_settings_.toString() << "\n"
-            << "************ HRU_ACTOR SETTINGS ************\n"
-            << hru_actor_settings_.toString() << "\n"
-            << "********************************************\n\n";
+  CkPrintf("************ DISTRIBUTED_SETTINGS ************\n %s\n ************ SUMMA_ACTORS SETTINGS ************\n%s"
+           "\n************ FILE_ACCESS_ACTOR SETTINGS ************\n%s\n************ JOB_ACTOR SETTINGS ************\n%s"
+           "\n************ HRU_ACTOR SETTINGS ************\n%s\n********************************************\n\n",
+           distributed_settings_.toString().c_str(),
+           summa_actor_settings_.toString().c_str(),
+           fa_actor_settings_.toString().c_str(),
+           job_actor_settings_.toString().c_str(),
+           hru_actor_settings_.toString().c_str());
 }

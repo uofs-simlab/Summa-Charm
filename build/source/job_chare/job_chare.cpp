@@ -20,7 +20,7 @@ JobChare::JobChare(Batch batch, bool enable_logging,
       hru_actor_settings_(hru_actor_settings)
 {
   std::string err_msg;
-  CkPrintf("JobChare: Started on PE %d\n", CkMyPe());
+  CkPrintf("JobChare: Started\n");
 
   // Get hostname for logging
   gethostname(hostname_, HOST_NAME_MAX);
@@ -87,9 +87,8 @@ JobChare::JobChare(Batch batch, bool enable_logging,
   }
   summa_init_struc_->getInitTolerance(rel_tol_, abs_tol_);
 
-  num_gru_info_ =
-      NumGRUInfo(batch_.getStartHRU(), batch_.getStartHRU(), batch_.getNumHRU(),
-                 batch_.getNumHRU(), gru_struc_->getFileGru(), false);
+  num_gru_info_ = NumGRUInfo(batch_.getStartHRU(), batch_.getStartHRU(), batch_.getNumHRU(),
+                             batch_.getNumHRU(), gru_struc_->getFileGru(), false);
 
   // Set the file_access_actor settings depending on data assimilation mode
   if (job_actor_settings_.data_assimilation_mode_)
@@ -99,16 +98,9 @@ JobChare::JobChare(Batch batch, bool enable_logging,
   }
 
   // Start File Access Actor and Become User Selected Mode
-  // NOTE: FileAccessChare must be created after summa_init_struc setup is complete
-  // because initFileAccessChare() depends on forcFileInfo being allocated in summa_paramSetup()
-  // Force FileAccessChare to run on the same PE as JobChare to avoid distributed memory issues
+  file_access_chare_ = CProxy_FileAccessChare::ckNew(num_gru_info_, fa_actor_settings_, thishandle);
 
-  file_access_chare_ = CProxy_FileAccessChare::ckNew(
-      num_gru_info_, fa_actor_settings_, thishandle);
-
-  int num_timesteps = file_access_chare_.initFileAccessChare(file_gru_, batch_.getNumHRU());
-
-  // int num_timesteps = 10;
+  int num_timesteps = file_access_chare_.initFileAccessChare(gru_struc_->getFileGru(), gru_struc_->getNumHru());
   if (num_timesteps < 0)
   {
     std::string err_msg =
@@ -150,10 +142,9 @@ void JobChare::spawnGruActors()
 
   CkChareID fileAccessChareID = file_access_chare_.ckGetChareID();
 
-  int num_gru = gru_struc_->getNumGru();
-  CkPrintf("JobChare: About to create %d GRU actors\n", num_gru);
+  CkPrintf("JobChare: NumGRU = %d", gru_struc_->getNumGru());
 
-  for (int i = 0; i < num_gru; i++)
+  for (int i = 0; i < gru_struc_->getNumGru(); i++)
   {
     auto netcdf_index = gru_struc_->getStartGru() + i;
     auto job_index = i + 1;
@@ -162,53 +153,11 @@ void JobChare::spawnGruActors()
         CProxy_GruChare::ckNew(netcdf_index, job_index, num_steps_, hru_actor_settings_,
                                fa_actor_settings_.num_timesteps_in_output_buffer_, fileAccessChareID, thishandle);
     std::unique_ptr<GRU> gru_obj = std::make_unique<GRU>(
-        netcdf_index, job_index, dt_init_factor_, rel_tol_,
+        netcdf_index, job_index, gru_chare_proxy.ckGetChareID(), dt_init_factor_, rel_tol_,
         abs_tol_, job_actor_settings_.max_run_attempts_);
     gru_struc_->addGRU(std::move(gru_obj));
   }
   gru_struc_->decrementRetryAttempts();
-}
-
-// Entry method implementation for processGRU
-void JobChare::processGRU(int gru_id)
-{
-  counter_++;
-  if (counter_ == gru_struc_->getNumGru())
-    finalizeJob(); // Finalize if all GRUs are processed
-  // TODO: Implement GRU processing logic
-}
-
-// Entry method implementation for finalize
-void JobChare::finalize()
-{
-  CkPrintf("JobChare: Entry method finalize() called\n");
-  finalizeJob(); // Call the implementation method
-}
-
-// Entry method implementation for fileAccessReady
-void JobChare::fileAccessReady(int num_steps)
-{
-  CkPrintf("JobChare: File access ready with %d steps\n", num_steps);
-  
-  if (num_steps < 0)
-  {
-    std::string err_msg =
-        "ERROR: JobChare: FileAccessChare initialization failed\n";
-    CkPrintf("JobChare: %s", err_msg.c_str());
-    CProxy_SummaChare(summa_chare_proxy_).reportError(-2, err_msg);
-    return;
-  }
-
-  timing_info_.updateEndPoint("init_duration");
-
-  // Start JobActor in User Selected Mode
-  logger_->log("JobActor Initialized");
-  CkPrintf("JobActor Initialized: Running %d Steps\n", num_steps);
-  logger_->log("Async Mode: File Access Actor Ready");
-
-  // TODO: Implement the data assimilation mode logic if needed
-  num_steps_ = num_steps;
-  spawnGruActors();
 }
 
 // Implementation method for finalization
@@ -216,33 +165,31 @@ void JobChare::finalizeJob()
 {
   std::tuple<double, double> read_write_duration = file_access_chare_.finalize();
   CkPrintf("read_write_duration = (%f, %f)\n",
-          std::get<0>(read_write_duration), std::get<1>(read_write_duration));
+           std::get<0>(read_write_duration), std::get<1>(read_write_duration));
   int err = 0;
-  auto num_failed_grus = gru_struc_->getNumGruFailed();
+  int num_failed_grus = gru_struc_->getNumGruFailed();
   CkPrintf("JobChare: Finalizing job with %d failed GRUs\n", num_failed_grus);
   timing_info_.updateEndPoint("total_duration");
-  // CkPrintf(
-  //     "\n_____________PRINTING JOB_ACTOR TIMING INFO RESULTS____________\n"
-  //     "Total Duration = %f Seconds\n"
-  //     "Total Duration = %f Minutes\n"
-  //     "Total Duration = %f Hours\n"
-  //     "Job Init Duration = %f Seconds\n"
-  //     "_________________________________________________________________\n\n",
-  //     timing_info_.getDuration("total_duration").value_or(-1.0),
-  //     timing_info_.getDuration("total_duration").value_or(-1.0) / 60,
-  //     (timing_info_.getDuration("total_duration").value_or(-1.0) / 60) / 60,
-  //     timing_info_.getDuration("init_duration").value_or(-1.0));
+  CkPrintf(
+      "\n_____________PRINTING JOB_ACTOR TIMING INFO RESULTS____________\n"
+  "Total Duration = %f Seconds\n"
+  "Total Duration = %f Minutes\n"
+  "Total Duration = %f Hours\n"
+  "Job Init Duration = %f Seconds\n"
+  "_________________________________________________________________\n\n",
+  timing_info_.getDuration("total_duration").value_or(-1.0),
+  timing_info_.getDuration("total_duration").value_or(-1.0) / 60,
+  (timing_info_.getDuration("total_duration").value_or(-1.0) / 60) / 60,
+  timing_info_.getDuration("init_duration").value_or(-1.0));
 
   // Deallocate GRU_Struc
   gru_struc_.reset();
   summa_init_struc_.reset();
-
   // Tell Parent we are done
-  auto total_duration = timing_info_.getDuration("total_duration").value_or(-1.0);
-  CkPrintf("Total Duration = %f Seconds\n", total_duration);
-  CProxy_SummaChare(summa_chare_proxy_).doneJob(num_failed_grus, total_duration,
-                             std::get<0>(read_write_duration),
-                             std::get<1>(read_write_duration));
+  double total_duration = timing_info_.getDuration("total_duration").value_or(-1.0);
+  double read_duration = std::get<0>(read_write_duration);
+  double write_duration = std::get<1>(read_write_duration);
+  CProxy_SummaChare(summa_chare_proxy_).doneJob(num_failed_grus, total_duration, read_duration, write_duration);
 
   CkPrintf("JobChare: Finalized successfully\n");
 }
@@ -265,7 +212,7 @@ void JobChare::handleFinishedGRU(int job_index)
       std::to_string(gru_struc_->getGRU(job_index)->getIndexNetcdf()) +
       " -- LocalGRU=" +
       std::to_string(gru_struc_->getGRU(job_index)->getIndexJob()) +
-      " -- NumFailed=" + std::to_string(gru_struc_->getNumGruFailed());
+      " -- NumFailed=" + std::to_string(gru_struc_->getNumGruFailed()) + "\n";
   logger_->log(update_str);
   CkPrintf("%s", update_str.c_str());
 
@@ -310,48 +257,12 @@ void JobChare::restartFailures()
                                fa_actor_settings_.num_timesteps_in_output_buffer_, file_access_chare_, thishandle);
     gru_struc_->decrementNumGruFailed();
     std::unique_ptr<GRU> gru_obj = std::make_unique<GRU>(
-        netcdf_index, job_index, dt_init_factor_, rel_tol_,
+        netcdf_index, job_index, gru_chare_proxy.ckGetChareID(), dt_init_factor_, rel_tol_,
         abs_tol_, job_actor_settings_.max_run_attempts_);
     gru_struc_->addGRU(std::move(gru_obj));
     gru_chare_proxy.updateHRU();
   }
   gru_struc_->decrementRetryAttempts();
-}
-
-// void JobChare::pup(PUP::er &p) {
-//   CBase_JobChare::pup(p);
-
-//   // Serialize basic types only for now
-//   p | batch_;
-//   p | file_gru_;
-//   p | enable_logging_;
-//   p | num_steps_;
-//   p | timestep_;
-//   p | rel_tol_;
-//   p | abs_tol_;
-//   p | dt_init_factor_;
-//   p | forcing_step_;
-//   p | output_step_;
-//   p | num_gru_done_timestep_;
-//   p | num_write_msgs_;
-//   p | da_paused_;
-//   p | iFile_;
-//   p | steps_in_ffile_;
-
-//   // Note: Settings objects, timing_info_, gru_struc_, and other complex objects
-//   // need special handling for migration - commented out for now
-//   // p | job_actor_settings_;
-//   // p | fa_actor_settings_;
-//   // p | hru_actor_settings_;
-//   // p | timing_info_;
-// }
-
-// Implementation of handleError method
-void JobChare::handleError(int err_code, std::string err_msg)
-{
-  CkPrintf("JobChare::handleError: Code %d, Message: %s\n", err_code, err_msg.c_str());
-  // Report error back to SummaChare
-  CProxy_SummaChare(summa_chare_proxy_).reportError(err_code, err_msg);
 }
 
 void JobChare::handleGruChareError(int job_index, int timestep, int err_code,

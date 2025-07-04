@@ -9,7 +9,7 @@
 // Regular includes
 #include <memory>
 #include <vector>
-#include "num_gru_info.hpp"  // Include the global NumGRUInfo definition
+#include "num_gru_info.hpp" // Include the global NumGRUInfo definition
 #include "output_buffer.hpp"
 #include "file_access_actor_settings.hpp"
 #include "fortran_data_types.hpp"
@@ -20,18 +20,19 @@
 // Forward declarations
 class OutputBuffer;
 class TimingInfo;
-class FileAccessActorSettings;  // Defined in settings_functions.hpp
-
+class FileAccessActorSettings;
 // Fortran interface functions
-extern "C" {
-    void f_getNumTimeSteps(int& num_timesteps);
-    void writeRestart_fortran(void* handle_ncid, int& start_gru, int& max_gru, 
-                              int& timestep, int& year, int& month, int& day, 
-                              int& hour, int& err);
+extern "C"
+{
+  void f_getNumTimeSteps(int &num_timesteps);
+  void writeRestart_fortran(void *handle_ncid, int &start_gru, int &max_gru,
+                            int &timestep, int &year, int &month, int &day,
+                            int &hour, int &err);
 }
 
 // The actual class definition
-class FileAccessChare : public CBase_FileAccessChare {
+class FileAccessChare : public CBase_FileAccessChare
+{
 private:
   TimingInfo timing_info_;
   NumGRUInfo num_gru_info_;
@@ -65,41 +66,27 @@ public:
   int restartFailures();
   void accessForcingInternal(int i_file);
   void writeOutput(int index_gru, CkChareID gru_chare);
-
-  // Migration support
-  void pup(PUP::er &p) override {
-    CBase_FileAccessChare::pup(p);
-    p | num_gru_info_;
-    p | fa_settings_;
-    p | start_gru_;
-    p | num_gru_;
-    p | num_hru_;
-    p | num_steps_;
-    p | write_params_flag_;
-    p | completed_checkpoints_;
-    p | hru_checkpoints_;
-    p | hru_timesteps_;
-  }
+  void writeRestartOutput(int gru, int gru_timestep, int gru_checkpoint,
+                          int output_structure_index, int year, int month, int day, int hour);
 };
 
 /*********************************************
  * File Access Actor state variables
  *********************************************/
-struct file_access_state {
+struct file_access_state
+{
   TimingInfo file_access_timing;
-  CkChareID parent; 
+  CkChareID parent;
   int start_gru;
   int num_gru;
   int num_hru;
 
   NumGRUInfo num_gru_info;
 
-  void *handle_ncid = new_handle_var_i();  // output file ids
+  void *handle_ncid = new_handle_var_i(); // output file ids
   int num_steps;
   int num_output_steps;
   int err = 0; // this is to make compiler happy
-
-
 
   std::unique_ptr<forcingFileContainer> forcing_files;
 

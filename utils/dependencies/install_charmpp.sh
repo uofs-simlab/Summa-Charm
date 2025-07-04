@@ -12,12 +12,11 @@
 #####################################################################
 
 # Define installation directory
-export CHARMDIR=$PWD/install/charmpp
+export CHARMDIR=$PWD/install/charmppNEW
 
 wget https://github.com/charmplusplus/charm/archive/refs/tags/v8.0.0.tar.gz
 tar xzf v8.0.0.tar.gz
 cd charm-8.0.0
-./build charm++ netlrts-linux-x86_64 --with-production -j8 --destination=$CHARMDIR
+# ./build charm++ netlrts-linux-x86_64 --with-production -j8 --destination=$CHARMDIR
 
-
-
+./build charm++ multicore-linux-x86_64 --with-production -j8 --destination=$CHARMDIR

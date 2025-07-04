@@ -82,17 +82,10 @@ public:
            CkChareID summa_chare_proxy, int file_gru);
 
   void spawnGruActors();
-  void processGRU(int gru_id);  // Entry method from .ci file
-  void finalize();              // Entry method from .ci file
-  void fileAccessReady(int num_steps);  // Entry method from .ci file
-  // void spawnGruBatches();
-  // void processTimestep();
   void doneHRU(int job_index);
   void handleFinishedGRU(int job_index); 
   void finalizeJob();
   void restartFailures();
-  // Error Handling Functions
-  void handleError(int err_code, std::string err_msg);  // Added missing method
   void handleGruChareError(int job_index, int timestep, int err_code,
                               std::string err_msg);
   void handleGRUError(int err_code, int job_index, int timestep, 

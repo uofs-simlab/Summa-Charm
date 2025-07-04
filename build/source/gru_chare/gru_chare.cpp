@@ -15,12 +15,10 @@ GruChare::GruChare(int netcdf_index, int job_index,
     gru_data_ = std::unique_ptr<void, GruDeleter>(new_handle_gru_type(num_hrus_));
 
     std::unique_ptr<char[]> message(new char[256]);
-    f_initGru(job_index_, gru_data_.get(), num_steps_output_buffer_, err,
-              &message);
+    f_initGru(job_index_, gru_data_.get(), num_steps_output_buffer_, err, &message);
     if (err != 0)
     {
         CkPrintf("GRU Actor: Error initializing GRU -- %s\n", message.get());
-        CkExit();
         return;
     }
     std::fill(message.get(), message.get() + 256, '\0');
@@ -29,7 +27,6 @@ GruChare::GruChare(int netcdf_index, int job_index,
     if (err != 0)
     {
         CkPrintf("GRU Actor: Error setting up GRU -- %s\n", message.get());
-        CkExit();
         return;
     }
     std::fill(message.get(), message.get() + 256, '\0');
@@ -38,7 +35,6 @@ GruChare::GruChare(int netcdf_index, int job_index,
     if (err != 0)
     {
         CkPrintf("GRU Actor: Error reading GRU restart -- %s\n", message.get());
-        CkExit();
         return;
     }
 
@@ -61,7 +57,6 @@ void GruChare::newForcingFile(int num_forc_steps, int iFile)
     if (err != 0)
     {
         CkPrintf("GRU Actor: Error setting time zone offset");
-        CkExit();
         return;
     }
     forcingStep_ = 1;
@@ -133,6 +128,11 @@ void GruChare::runHRU()
     }
 }
 
+void GruChare::doneHRU()
+{
+    CProxy_JobChare(parent_).doneHRU(job_index_);
+}
+
 void GruChare::handleErr(int err, std::unique_ptr<char[]> &message)
 {
     CkPrintf("GRU Actor %d-%d: Error running GRU at timestep %d",
@@ -145,13 +145,6 @@ void GruChare::handleErr(int err, std::unique_ptr<char[]> &message)
 }
 
 
-
-void GruChare::doneHRU()
-{
-    CProxy_JobChare(parent_).doneHRU(job_index_);
-}
-
-
 void GruChare::updateHRU()
 {
     int output_steps = CProxy_FileAccessChare(file_access_actor_).getNumOutputSteps(job_index_);
@@ -159,108 +152,5 @@ void GruChare::updateHRU()
     CProxy_FileAccessChare(file_access_actor_).accessForcing(iFile_, thishandle);
 }
 
-// void GruChare::updateTimeZoneOffset(int iFile)
-// {
-//     int err = 0;
-//     char message[256] = "";
-//     char *msg_ptr = message;
-
-//     setTimeZoneOffsetGRU_fortran(iFile, gru_data_, err, &msg_ptr);
-//     if (err != 0)
-//     {
-//         CkPrintf("GruChare[%d]: Error in updateTimeZoneOffset: %s\n", gru_index_, message);
-//         // Report error to parent
-//         ErrorInfo error_info;
-//         error_info.gru_index = gru_index_;
-//         error_info.timestep = timestep_;
-//         error_info.error_code = err;
-//         error_info.error_message = std::string(message);
-//         parent_.reportError(error_info);
-//         return;
-//     }
-// }
-
-
-
-// void GruChare::processStep()
-// {
-//     int err = 0;
-//     char message[256] = "";
-//     char *msg_ptr = message;
-
-//     // Read forcing data for this timestep
-//     int iRead = forcing_step_;
-//     int iFile = 1; // Assuming single forcing file for now
-//     readGRUForcing_fortran(gru_index_, timestep_, iRead, iFile, gru_data_, err, &msg_ptr);
-//     if (err != 0)
-//     {
-//         CkPrintf("GruChare[%d]: Error reading forcing at timestep %d: %s\n",
-//                  gru_index_, timestep_, message);
-
-//         ErrorInfo error_info;
-//         error_info.gru_index = gru_index_;
-//         error_info.timestep = timestep_;
-//         error_info.error_code = err;
-//         error_info.error_message = std::string(message);
-//         parent_.reportError(error_info);
-//         return;
-//     }
-
-//     // Run GRU physics
-//     int dt_init_factor = 1; // Default timestep factor
-//     runGRU_fortran(gru_index_, timestep_, gru_data_, dt_init_factor, err, &msg_ptr);
-//     if (err != 0)
-//     {
-//         CkPrintf("GruChare[%d]: Error in physics simulation at timestep %d: %s\n",
-//                  gru_index_, timestep_, message);
-
-//         ErrorInfo error_info;
-//         error_info.gru_index = gru_index_;
-//         error_info.timestep = timestep_;
-//         error_info.error_code = err;
-//         error_info.error_message = std::string(message);
-//         parent_.reportError(error_info);
-//         return;
-//     }
-
-//     // Write output if needed
-//     if (num_steps_before_write_ > 0)
-//     {
-//         writeGRUOutput_fortran(gru_index_, timestep_, output_step_, gru_data_, err, &msg_ptr);
-//         if (err != 0)
-//         {
-//             CkPrintf("GruChare[%d]: Error writing output at timestep %d: %s\n",
-//                      gru_index_, timestep_, message);
-
-//             ErrorInfo error_info;
-//             error_info.gru_index = gru_index_;
-//             error_info.timestep = timestep_;
-//             error_info.error_code = err;
-//             error_info.error_message = std::string(message);
-//             parent_.reportError(error_info);
-//             return;
-//         }
-//         num_steps_before_write_--;
-//     }
-
-//     // Notify completion
-//     handleCompletion();
-// }
-
-
-
-// void GruChare::exit()
-// {
-//     is_running_ = false;
-
-//     // Clean up Fortran data
-//     if (gru_data_)
-//     {
-//         delete_handle_gru_type(gru_data_);
-//         gru_data_ = nullptr;
-//     }
-
-//     CkPrintf("GruChare[%d]: Exiting\n", gru_index_);
-// }
 
 #include "GruChare.def.h"

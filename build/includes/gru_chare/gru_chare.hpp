@@ -65,7 +65,6 @@ public:
     GruChare(int netcdf_index, int job_index,
              int num_steps, HRUActorSettings hru_actor_settings,
              int num_output_steps, CkChareID file_access_actor, CkChareID parent);
-    GruChare(CkMigrateMessage *m) {}
     ~GruChare() {}
 
     void newForcingFile(int num_forc_steps, int iFile);
@@ -74,12 +73,4 @@ public:
     void handleErr(int err, std::unique_ptr<char[]> &message);
     void doneHRU();
     void updateHRU();
-
-    // std::vector<HRU> serializeGRU();
-    // void deserializeGRU(std::vector<HRU> &hrus);
-
-
-    // void updateTimeZoneOffset(int iFile);
-    // void exit();
-    // void processStep();
 };

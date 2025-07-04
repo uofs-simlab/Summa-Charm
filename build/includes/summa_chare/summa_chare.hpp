@@ -24,6 +24,9 @@ public:
   // Entry methods
   void doneJob(int num_gru_failed, double job_duration, double read_duration, double write_duration);
   void reportError(int err_code, std::string err_msg);
+  int spawnJob();
+  int createLogDirectory();
+  void finalize();
 
   template <typename T>
   std::optional<T> getSettings(json settings, std::string key_1,
@@ -84,7 +87,4 @@ private:
 
   int readSettings(std::string config_file);
   void printSettings();
-  int spawnJob();
-  int createLogDirectory();
-  void finalize();
 };

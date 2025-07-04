@@ -45,9 +45,9 @@ class GRU {
     
   public:
     // Constructor
-    GRU(int index_netcdf, int index_job,
+    GRU(int index_netcdf, int index_job, CkChareID actor_ref,
         int dt_init_factor, double rel_tol, double abs_tol, int max_attempts) 
-        : index_netcdf_(index_netcdf), index_job_(index_job), 
+        : index_netcdf_(index_netcdf), index_job_(index_job), actor_ref_(actor_ref),
           dt_init_factor_(dt_init_factor),
           rel_tol_(rel_tol), abs_tol_(abs_tol), attempts_left_(max_attempts),
           state_(gru_state::running) {};
@@ -119,7 +119,9 @@ class GruStruc {
 
 public:
     GruStruc(int start_gru, int num_gru, int num_retry_attempts);
-    ~GruStruc(){f_deallocateGruStruc();};
+    ~GruStruc(){};
+    // ~GruStruc(){f_deallocateGruStruc();};
+
     int readDimension();
     int readIcondNlayers();
 

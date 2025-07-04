@@ -1,7 +1,7 @@
 module FileAccessChare {
   include "num_gru_info.hpp";
   include "file_access_actor_settings.hpp";
-
+  
   chare FileAccessChare {
     entry FileAccessChare(NumGRUInfo num_gru_info, FileAccessActorSettings fa_settings, CkChareID job_chare_proxy);
     entry [sync] int initFileAccessChare(const int file_gru, int num_hru);
@@ -12,5 +12,6 @@ module FileAccessChare {
     entry [sync] std::tuple<double, double> finalize();
     entry void error(int err_code, std::string err_msg);
     entry void writeOutput(int index_gru, CkChareID gru_chare);
+    entry void writeRestartOutput(int gru, int gru_timestep, int gru_checkpoint, int output_structure_index, int year, int month, int day, int hour);
   };
 };
