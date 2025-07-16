@@ -191,10 +191,18 @@ subroutine initHRU(indx_gru, indx_hru, hru_data, err, message)
 
 
   ! Intilaize the statistics data structures
-  allocate(hru_data%statCounter%var(maxVarFreq), stat=err)
-  allocate(hru_data%outputTimeStep%var(maxVarFreq), stat=err)
-  allocate(hru_data%resetStats%dat(maxVarFreq), stat=err)
-  allocate(hru_data%finalizeStats%dat(maxVarFreq), stat=err)
+  if (.not.allocated(hru_data%statCounter%var)) then
+    allocate(hru_data%statCounter%var(maxVarFreq), stat=err)
+  endif
+  if (.not.allocated(hru_data%outputTimeStep%var)) then
+    allocate(hru_data%outputTimeStep%var(maxVarFreq), stat=err)
+  endif
+  if (.not.allocated(hru_data%resetStats%dat)) then
+    allocate(hru_data%resetStats%dat(maxVarFreq), stat=err)
+  endif
+  if (.not.allocated(hru_data%finalizeStats%dat)) then
+    allocate(hru_data%finalizeStats%dat(maxVarFreq), stat=err)
+  endif
   hru_data%statCounter%var(1:maxVarFreq) = 1
   hru_data%outputTimeStep%var(1:maxVarFreq) = 1
   ! initialize flags to reset/finalize statistics

@@ -54,7 +54,9 @@ subroutine f_allocate(num_gru, err, message_r) bind(C, name="f_allocate")
   ! Start of subroutine
   message = ""
   call f_c_string_ptr(trim(message), message_r)
-  allocate(init_struc)
+  if (.not.allocated(init_struc)) then
+    allocate(init_struc)
+  endif
   summaVars: associate(&
 #ifdef V4_ACTIVE  
     lookupStruct         =>init_struc%lookupStruct         , & ! x%gru(:)%hru(:)%z(:)%var(:)%lookup(:) -- lookup tables
@@ -139,22 +141,26 @@ subroutine f_allocate(num_gru, err, message_r) bind(C, name="f_allocate")
   endif
 
   ! allocate space for the time step and computeVegFlux flags (recycled for each GRU for subsequent model calls)
-  allocate(dt_init%gru(num_gru),upArea%gru(num_gru),computeVegFlux%gru(num_gru),stat=err)
-  if(err/=0)then
-    message=trim(message)//'problem allocating space for dt_init, upArea, or computeVegFlux [GRU]'
-    call f_c_string_ptr(trim(message), message_r)
-    return
+  if (.not.allocated(dt_init%gru)) then
+    allocate(dt_init%gru(num_gru),upArea%gru(num_gru),computeVegFlux%gru(num_gru),stat=err)
+    if(err/=0)then
+      message=trim(message)//'problem allocating space for dt_init, upArea, or computeVegFlux [GRU]'
+      call f_c_string_ptr(trim(message), message_r)
+      return
+    endif
   endif
 
    ! allocate space for the HRUs
   do iGRU=1,num_gru
     hruCount = gru_struc(iGRU)%hruCount  ! gru_struc populated in "read_dimension"
-    allocate(dt_init%gru(iGRU)%hru(hruCount),upArea%gru(iGRU)%hru(hruCount),&
-             computeVegFlux%gru(iGRU)%hru(hruCount),stat=err)
-    if(err/=0)then
-      message='problem allocating space for dt_init, upArea, or computeVegFlux [HRU]'
-      call f_c_string_ptr(trim(message), message_r)
-      return
+    if (.not.allocated(dt_init%gru(iGRU)%hru)) then
+      allocate(dt_init%gru(iGRU)%hru(hruCount),upArea%gru(iGRU)%hru(hruCount),&
+               computeVegFlux%gru(iGRU)%hru(hruCount),stat=err)
+      if(err/=0)then
+        message='problem allocating space for dt_init, upArea, or computeVegFlux [HRU]'
+        call f_c_string_ptr(trim(message), message_r)
+        return
+      endif
     endif
   end do
 

@@ -963,7 +963,9 @@ err=0; message='writeRestart/'
 
 ! size of prognostic variable vector
 nProgVars = size(prog_meta)
-allocate(ncVarID(nProgVars+1))     ! include 1 additional basin variable in ID array (possibly more later)
+if (.not.allocated(ncVarID)) then
+  allocate(ncVarID(nProgVars+1))     ! include 1 additional basin variable in ID array (possibly more later)
+endif
 
 ! maximum number of soil layers
 maxSoil = gru_struc(1)%hruInfo(1)%nSoil
@@ -1126,7 +1128,9 @@ return
 end if
 
 ! cleanup
-deallocate(ncVarID)
+if (allocated(ncVarID)) then
+  deallocate(ncVarID)
+endif
 
 end subroutine writeRestart
 

@@ -1,12 +1,12 @@
 {
   "Summa_Actor": {
-    "max_gru_per_job": 1000,
+    "max_gru_per_job": 10,
     "enable_logging": false,
     "log_dir": ""
   },
   "File_Access_Actor": {
-    "num_partitions_in_output_buffer": 8,
-    "num_timesteps_in_output_buffer": 500
+    "num_partitions_in_output_buffer": 1,
+    "num_timesteps_in_output_buffer": 50
   },
   "Job_Actor": {
     "file_manager_path": "fileManager.txt",
@@ -16,6 +16,6 @@
   },
   "HRU_Actor": {
     "print_output": true,
-    "output_frequency": 1000
+    "output_frequency": 50
   }
 }

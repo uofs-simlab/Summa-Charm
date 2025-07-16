@@ -183,7 +183,7 @@ void JobChare::finalizeJob()
   timing_info_.getDuration("init_duration").value_or(-1.0));
 
   // Deallocate GRU_Struc
-  gru_struc_.reset();
+  // gru_struc_.reset();
   summa_init_struc_.reset();
   // Tell Parent we are done
   double total_duration = timing_info_.getDuration("total_duration").value_or(-1.0);
