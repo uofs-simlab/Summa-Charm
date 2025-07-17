@@ -56,7 +56,7 @@ class OutputPartition {
 
     inline const bool isReadyToWrite() {
       // Simplified for Charm++ version - assume always ready for now
-      return true;
+      return ready_to_write_.size() == num_gru_ && ready_to_write_.size() > 0;
     }
 
   public:

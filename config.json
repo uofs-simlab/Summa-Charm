@@ -6,7 +6,7 @@
   },
   "File_Access_Actor": {
     "num_partitions_in_output_buffer": 1,
-    "num_timesteps_in_output_buffer": 50
+    "num_timesteps_in_output_buffer": 500
   },
   "Job_Actor": {
     "file_manager_path": "fileManager.txt",
@@ -16,6 +16,6 @@
   },
   "HRU_Actor": {
     "print_output": true,
-    "output_frequency": 50
+    "output_frequency": 500
   }
 }

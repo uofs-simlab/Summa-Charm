@@ -48,6 +48,9 @@ JobChare::JobChare(Batch batch, bool enable_logging,
   }
 
   // GruStruc Initialization
+  if (gru_struc_){
+    gru_struc_.reset(); // Reset if already initialized
+  }
   gru_struc_ =
       std::make_unique<GruStruc>(batch_.getStartHRU(), batch_.getNumHRU(),
                                  job_actor_settings_.max_run_attempts_);

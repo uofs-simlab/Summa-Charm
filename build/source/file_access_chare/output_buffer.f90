@@ -336,13 +336,16 @@ subroutine f_allocateOutputBuffer(max_steps, num_gru, err, message_r) &
       allocate(outputTimeStep(iGRU)%dat(maxVarFreq), stat=err)
       outputTimeStep(iGRU)%dat(:) = 1
     end do
-  end if
+  endif
   ! if (err /= 0) call f_c_string_ptr(trim(message), message_r); return;
 
 
   ! ****************************************************************************
   ! *** Initialize output structure
   ! ****************************************************************************
+  if (allocated(summa_struct)) then
+    deallocate(summa_struct)
+  endif
   if (.not.allocated(summa_struct)) then
     allocate(summa_struct(1))
     ! Statistics Structures
@@ -375,7 +378,8 @@ subroutine f_allocateOutputBuffer(max_steps, num_gru, err, message_r) &
     allocate(summa_struct(1)%failedGrus(num_gru))
     summa_struct(1)%failedGrus(:) = .false.
     summa_struct(1)%nTimeSteps = max_steps
-  endif
+  end if
+    
 
 end subroutine f_allocateOutputBuffer
 

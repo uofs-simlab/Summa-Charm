@@ -203,11 +203,11 @@ const std::optional<WriteOutputReturn*> OutputPartition::writeOutput(
 
     write_status_.err = err;
     write_status_.message = message.get();
-    // write_status_.actor_to_update = ready_to_write_;  // Commented out for Charm++ version
+    write_status_.actor_to_update = ready_to_write_;
     write_status_.num_steps_update = num_steps_buffer_;
 
     // Reset the partition for the next set of writes
-    // ready_to_write_.clear();  // Commented out for Charm++ version
+    ready_to_write_.clear();
     return std::optional<WriteOutputReturn*>(&write_status_);
   }
   return {};
