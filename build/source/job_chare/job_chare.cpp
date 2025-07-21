@@ -235,6 +235,7 @@ void JobChare::spawnGruActors()
         abs_tol_temp_soil_snow_, abs_tol_wat_snow_, abs_tol_matric_,
         abs_tol_aquifr_, job_actor_settings_.max_run_attempts_);
     gru_struc_->addGRU(std::move(gru_obj));
+    gru_chare_proxy.updateHRU();
   }
   gru_struc_->decrementRetryAttempts();
 }

@@ -7,8 +7,6 @@
 #include <iomanip>
 #include <thread>
 #include "json.hpp"
-#include "pup.h"
-#include "pup_stl.h"
 
 #define SUCCESS 0
 #define FAILURE -1

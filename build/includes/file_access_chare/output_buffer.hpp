@@ -142,7 +142,9 @@ class OutputBuffer {
       }
     };
 
-    ~OutputBuffer() {f_deallocateOutputBuffer(handle_ncid_.get());};
+    ~OutputBuffer() {
+      f_deallocateOutputBuffer(handle_ncid_.get());
+    };
 
     int getNumStepsBuffer(int gru_index);
 
@@ -151,9 +153,9 @@ class OutputBuffer {
     int allocateOutputBuffer(int num_timesteps);
     const std::optional<WriteOutputReturn*> addFailedGRU(int index_gru);
     const std::optional<WriteOutputReturn*> writeOutput(
-        int index_gru, CkChareID gru);
+        int index_gru, caf::actor gru);
     const int writeOutputDA(const int output_step);
-    int reconstruct();
+    void reconstruct();
     int findPartitionIndex(int index);
 
 

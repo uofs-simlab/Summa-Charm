@@ -1,5 +1,4 @@
 #pragma once
-#include "pup.h"
 
 struct NumGRUInfo {
   int start_gru_local;
@@ -17,14 +16,4 @@ struct NumGRUInfo {
         num_gru_local(num_gru_local), num_gru_global(num_gru_global), 
         file_gru(file_gru), 
         use_global_for_data_structures(use_global_for_data_structures) {}
-
-  // PUP method for Charm++ serialization
-  void pup(PUP::er &p) {
-    p | start_gru_local;
-    p | start_gru_global;
-    p | num_gru_local;
-    p | num_gru_global;
-    p | file_gru;
-    p | use_global_for_data_structures;
-  }
 };

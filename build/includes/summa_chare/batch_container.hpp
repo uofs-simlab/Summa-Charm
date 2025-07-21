@@ -85,18 +85,5 @@ class BatchContainer {
      */
     void updateBatchStatus_LostClient(int batch_id);
 
-    template <class Inspector>
-    friend bool inspect(Inspector& inspector, BatchContainer& batch_container) {
-        return inspector.object(batch_container).fields(
-               inspector.field("total_hru_count", 
-                               batch_container.total_hru_count_),
-               inspector.field("num_hru_per_batch", 
-                               batch_container.num_hru_per_batch_),
-               inspector.field("batches_remaining", 
-                               batch_container.batches_remaining_),
-               inspector.field("batch_list", batch_container.batch_list_),
-               inspector.field("logger", batch_container.logger_));
-    }
-
 
 };

@@ -150,9 +150,9 @@ void FileAccessChare::writeRestartOutput(int gru, int gru_timestep, int gru_chec
   // if the slowest hru is past the ith checkpoint (current threshold)
   if (slowest_checkpoint >= completed_checkpoints_)
   {
-    // Output_Partition *output_partition =  output_container_->getOutputPartition(gru - 1);
-    // writeRestart(output_partition, start_gru_, num_gru_,
-    //              output_structure_index, year, month, day, hour);
+    Output_Partition *output_partition =  output_container_->getOutputPartition(gru - 1);
+    writeRestart(output_partition, start_gru_, num_gru_,
+                 output_structure_index, year, month, day, hour);
     completed_checkpoints_++;
   }
 }
@@ -205,7 +205,7 @@ std::tuple<double, double> FileAccessChare::finalize()
            forcing_files_->getReadDuration(),
            timing_info_.getDuration("write_duration").value_or(-1.0));
 
-  // output_buffer_.reset();
+  output_buffer_.reset();
 
   return std::make_tuple(forcing_files_->getReadDuration(),
                          timing_info_.getDuration("write_duration")

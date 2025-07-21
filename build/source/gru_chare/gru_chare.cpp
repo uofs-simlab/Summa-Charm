@@ -58,9 +58,6 @@ GruChare::GruChare(int netcdf_index, int job_index,
       hru_actor_settings_.abs_tol_aquifr_);
 
     // // TODO: Implement data assimilation mode if needed
-    // int output_steps = CProxy_FileAccessChare(file_access_actor_).getNumOutputSteps(job_index_);
-    // num_steps_until_write_ = output_steps;
-    // CProxy_FileAccessChare(file_access_actor_).accessForcing(iFile_, thishandle);
 }
 
 void GruChare::newForcingFile(int num_forc_steps, int iFile)

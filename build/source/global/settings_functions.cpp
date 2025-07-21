@@ -3,20 +3,6 @@
 void Settings::generateConfigFile() {
     using json = nlohmann::ordered_json;
     json config_file; 
-    config_file["Distributed_Settings"] = {
-        {"distributed_mode", false},
-        {"port", MISSING_INT},
-        {"total_hru_count", MISSING_INT},
-        {"num_hru_per_batch", MISSING_INT},
-        {"load_balancing", false},
-        {"num_nodes", MISSING_INT},
-        {"servers_list", {
-            {{"hostname", "host_1"}},
-            {{"hostname", "host_2"}},
-            {{"hostname", "host_3"}}
-        }}
-    };
-
     config_file["Summa_Actor"] = {
         {"max_gru_per_job", GRU_PER_JOB},
         {"enable_logging", false},
@@ -30,11 +16,28 @@ void Settings::generateConfigFile() {
         {"file_manager_path", "/home/username/summa_file_manager"},
         {"max_run_attempts", 1},
         {"data_assimilation_mode", false},
-        {"batch_size", 10}
+        {"batch_size", MISSING_INT}
     };
     config_file["HRU_Actor"] = {
         {"print_output", true},
-        {"output_frequency", OUTPUT_FREQUENCY}
+        {"output_frequency", OUTPUT_FREQUENCY},
+        {"abs_tol", 1e1},
+        {"rel_tol", 1e1},
+        {"rel_tol_temp_cas", 1e1},
+        {"rel_tol_temp_veg", 1e1},
+        {"rel_tol_wat_veg", 1e1},
+        {"rel_tol_temp_soil_snow", 1e1},
+        {"rel_tol_wat_snow", 1e1},
+        {"rel_tol_matric", 1e1},
+        {"rel_tol_aquifr", 1e1},
+        {"abs_tol_temp_cas", 1e1},
+        {"abs_tol_temp_veg", 1e1},
+        {"abs_tol_wat_veg", 1e1},
+        {"abs_tol_temp_soil_snow", 1e1},
+        {"abs_tol_wat_snow", 1e1},
+        {"abs_tol_matric", 1e1},
+        {"abs_tol_aquifr", 1e1},
+        {"default_tol", true}
     };
 
     std::ofstream config_file_stream("config.json");
