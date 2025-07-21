@@ -82,81 +82,35 @@ subroutine f_readDimension(start_gru, num_gru, file_gru, file_hru, &
   ! read and set GRU dimensions
   ! **********************************************************************************************
   ! get gru dimension of whole file
-  err = nf90_inq_dimid(ncID,"gru",gruDimId)
-  if(err/=nf90_noerr)then
-    message=trim(message)//'problem finding gru dimension/'//trim(nf90_strerror(err))
-    return
-  end if
-  err = nf90_inquire_dimension(ncID, gruDimId, len = file_gru)
-  if(err/=nf90_noerr)then
-    message=trim(message)//'problem reading gru dimension/'//trim(nf90_strerror(err))
-    return
-  end if
+  err = nf90_inq_dimid(ncID,"gru",gruDimId);                   if(err/=nf90_noerr)then; message=trim(message)//'problem finding gru dimension/'//trim(nf90_strerror(err)); return; end if
+  err = nf90_inquire_dimension(ncID, gruDimId, len = file_gru); if(err/=nf90_noerr)then; message=trim(message)//'problem reading gru dimension/'//trim(nf90_strerror(err)); return; end if
 
   ! get hru dimension of whole file
-  err = nf90_inq_dimid(ncID,"hru",hruDimId)
-  if(err/=nf90_noerr)then
-    message=trim(message)//'problem finding hru dimension/'//trim(nf90_strerror(err))
-    return
-  end if
-  err = nf90_inquire_dimension(ncID, hruDimId, len = file_hru)
-  if(err/=nf90_noerr)then
-    message=trim(message)//'problem reading hru dimension/'//trim(nf90_strerror(err))
-    return
-  end if
+  err = nf90_inq_dimid(ncID,"hru",hruDimId);                   if(err/=nf90_noerr)then; message=trim(message)//'problem finding hru dimension/'//trim(nf90_strerror(err)); return; end if
+  err = nf90_inquire_dimension(ncID, hruDimId, len = file_hru); if(err/=nf90_noerr)then; message=trim(message)//'problem reading hru dimension/'//trim(nf90_strerror(err)); return; end if
 
   ! allocate space for GRU indices
-  if (.not.allocated(gru_id)) then
-    allocate(gru_id(file_gru))
-  endif
-  if (.not.allocated(hru_ix)) then
-    allocate(hru_ix(file_hru),hru_id(file_hru),hru2gru_id(file_hru))
-  endif
+  allocate(gru_id(file_gru))
+  allocate(hru_ix(file_hru),hru_id(file_hru),hru2gru_id(file_hru))
 
   ! read gru_id from netcdf file
-  err = nf90_inq_varid(ncID,"gruId",varID)
-  if (err/=0) then
-    message=trim(message)//'problem finding gruId'
-    return
-  end if
-  err = nf90_get_var(ncID,varID,gru_id)
-  if (err/=0) then
-    message=trim(message)//'problem reading gruId'
-    return
-  end if
+  err = nf90_inq_varid(ncID,"gruId",varID);     if (err/=0) then; message=trim(message)//'problem finding gruId'; return; end if
+  err = nf90_get_var(ncID,varID,gru_id);        if (err/=0) then; message=trim(message)//'problem reading gruId'; return; end if
 
   ! read hru_id from netcdf file
-  err = nf90_inq_varid(ncID,"hruId",varID)
-  if (err/=0) then
-    message=trim(message)//'problem finding hruId'
-    return
-  end if
-  err = nf90_get_var(ncID,varID,hru_id)
-  if (err/=0) then
-    message=trim(message)//'problem reading hruId'
-    return
-  end if
+  err = nf90_inq_varid(ncID,"hruId",varID);     if (err/=0) then; message=trim(message)//'problem finding hruId'; return; end if
+  err = nf90_get_var(ncID,varID,hru_id);        if (err/=0) then; message=trim(message)//'problem reading hruId'; return; end if
 
   ! read hru2gru_id from netcdf file
-  err = nf90_inq_varid(ncID,"hru2gruId",varID)
-  if (err/=0) then
-    message=trim(message)//'problem finding hru2gruId'
-    return
-  end if
-  err = nf90_get_var(ncID,varID,hru2gru_id)
-  if (err/=0) then
-    message=trim(message)//'problem reading hru2gruId'
-    return
-  end if
+  err = nf90_inq_varid(ncID,"hru2gruId",varID); if (err/=0) then; message=trim(message)//'problem finding hru2gruId'; return; end if
+  err = nf90_get_var(ncID,varID,hru2gru_id);    if (err/=0) then; message=trim(message)//'problem reading hru2gruId'; return; end if
  
   ! close netcdf file
   call nc_file_close(ncID,err,cmessage)
   if (err/=0) then; message=trim(message)//trim(cmessage); return; end if
   
   hru_ix=arth(1,1,file_hru)
-  if (.not.allocated(gru_struc)) then
-    allocate(gru_struc(num_gru))
-  endif
+  allocate(gru_struc(num_gru))
 
   if (err /= 0) then; call f_c_string_ptr(trim(message), message_r); end if
 end subroutine f_readDimension
@@ -173,9 +127,7 @@ subroutine f_setHruCount(iGRU,sGRU) bind(C, name="f_setHruCount")
   gru_struc(iGRU)%gru_id   = gru_id(iGRU+sGRU-1)
   gru_struc(iGRU)%gru_nc   = iGRU+sGRU-1 
   
-  if (.not.allocated(gru_struc(iGRU)%hruInfo)) then
-    allocate(gru_struc(iGRU)%hruInfo(gru_struc(iGRU)%hruCount))
-  endif
+  allocate(gru_struc(iGRU)%hruInfo(gru_struc(iGRU)%hruCount))
   gru_struc(iGRU)%hruInfo(:)%hru_nc = pack(hru_ix,hru2gru_id == gru_struc(iGRU)%gru_id)
   gru_struc(iGRU)%hruInfo(:)%hru_ix = arth(iGRU,1,gru_struc(iGRU)%hruCount)                    ! set index of hru in run domain
   gru_struc(iGRU)%hruInfo(:)%hru_id = hru_id(gru_struc(iGRU)%hruInfo(:)%hru_nc)                ! set id of hru
@@ -187,9 +139,7 @@ subroutine f_setIndexMap() bind(C, name="f_setIndexMap")
   ! Local Variables
   integer                         :: iGRU
 
-  if (.not.allocated(index_map)) then
-    allocate(index_map(sum(gru_struc(:)%hruCount)))
-  endif
+  allocate(index_map(sum(gru_struc(:)%hruCount)))
 
   do iGRU = 1,sum(gru_struc(:)%hruCount)
     index_map(gru_struc(iGRU)%hruInfo(:)%hru_ix)%gru_ix   = iGRU                                 ! index of gru in run domain to which the hru belongs
@@ -202,11 +152,7 @@ subroutine f_getNumHru(num_hru) bind(C, name="f_getNumHru")
   USE globalData,only:gru_struc
   implicit none
   integer(c_int), intent(out)     :: num_hru
-  if (allocated(gru_struc)) then
-    num_hru = sum(gru_struc(:)%hruCount)
-  else
-    num_hru = 0
-  endif
+  num_hru = sum(gru_struc(:)%hruCount)
 end subroutine f_getNumHru
 
 subroutine f_readIcondNlayers(num_gru, err, message_r)& 
@@ -253,13 +199,9 @@ subroutine f_getNumHruPerGru(num_gru, num_hru_per_gru_array) &
   ! Local Variables
   integer                         :: iGRU
 
-  if (allocated(gru_struc)) then
-    do iGRU = 1, num_gru
-      num_hru_per_gru_array(iGRU) = gru_struc(iGRU)%hruCount
-    end do
-  else
-    num_hru_per_gru_array(:) = 0
-  endif
+  do iGRU = 1, num_gru
+    num_hru_per_gru_array(iGRU) = gru_struc(iGRU)%hruCount
+  end do
   
 end subroutine f_getNumHruPerGru
 

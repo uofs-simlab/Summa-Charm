@@ -48,9 +48,9 @@ JobChare::JobChare(Batch batch, bool enable_logging,
   }
 
   // GruStruc Initialization
-  if (gru_struc_){
-    gru_struc_.reset(); // Reset if already initialized
-  }
+  // if (gru_struc_){
+  //   gru_struc_.reset(); // Reset if already initialized
+  // }
   gru_struc_ =
       std::make_unique<GruStruc>(batch_.getStartHRU(), batch_.getNumHRU(),
                                  job_actor_settings_.max_run_attempts_);
@@ -130,18 +130,90 @@ JobChare::JobChare(Batch batch, bool enable_logging,
 void JobChare::spawnGruActors()
 {
   CkPrintf("JobChare: Spawning GRU Actors\n");
-  // TODO: Implement f_getRelTol and f_getAbsTol
-  if (hru_actor_settings_.rel_tol_ > 0)
-  {
-    // f_getRelTol();
+  if (hru_actor_settings_.default_tol_ == true){
+    rel_tol_temp_cas_     = hru_actor_settings_.rel_tol_;
+    rel_tol_temp_veg_     = hru_actor_settings_.rel_tol_;
+    rel_tol_wat_veg_      = hru_actor_settings_.rel_tol_;
+    rel_tol_temp_soil_snow_= hru_actor_settings_.rel_tol_;
+    rel_tol_wat_snow_     = hru_actor_settings_.rel_tol_;
+    rel_tol_matric_       = hru_actor_settings_.rel_tol_;
+    rel_tol_aquifr_       = hru_actor_settings_.rel_tol_;
+
+    abs_tol_temp_cas_     = hru_actor_settings_.abs_tol_;
+    abs_tol_temp_veg_     = hru_actor_settings_.abs_tol_;
+    abs_tol_wat_veg_      = hru_actor_settings_.abs_tol_;
+    abs_tol_temp_soil_snow_= hru_actor_settings_.abs_tol_;
+    abs_tol_wat_snow_     = hru_actor_settings_.abs_tol_;
+    abs_tol_matric_       = hru_actor_settings_.abs_tol_;
+    abs_tol_aquifr_       = hru_actor_settings_.abs_tol_;
+  } else {
+  // TODO: Implement f_getBeSteps, f_getRelTol, and f_getAbsTol
+
+  // if (hru_actor_settings_.be_steps_ > 0) {
+  //   // f_getBeSteps();
+  //   be_steps_ = hru_actor_settings_.be_steps_;
+  // }
+
+  if (hru_actor_settings_.rel_tol_ > 0) {
     rel_tol_ = hru_actor_settings_.rel_tol_;
   }
 
-  if (hru_actor_settings_.abs_tol_ > 0)
-  {
-    // f_getAbsTol();
+  if (hru_actor_settings_.abs_tol_ > 0) {
     abs_tol_ = hru_actor_settings_.abs_tol_;
+  // if (hru_actor_settings_.abs_tolWat_ > 0) {
+  //   // f_getAbsTol();
+  //   abs_tolWat_ = hru_actor_settings_.abs_tolWat_;
+  // }
+
+  // if (hru_actor_settings_.abs_tolNrg_ > 0) {
+  //   // f_getAbsTol();
+  //   abs_tolNrg_ = hru_actor_settings_.abs_tolNrg_;
   }
+
+  // Initilize other tolerance values
+  if (hru_actor_settings_.rel_tol_temp_cas_ > 0) {
+    rel_tol_temp_cas_ = hru_actor_settings_.rel_tol_temp_cas_;
+  }
+  if (hru_actor_settings_.rel_tol_temp_veg_ > 0) {
+    rel_tol_temp_veg_ = hru_actor_settings_.rel_tol_temp_veg_;
+  }
+  if (hru_actor_settings_.rel_tol_wat_veg_ > 0) {
+    rel_tol_wat_veg_ = hru_actor_settings_.rel_tol_wat_veg_;
+  }
+  if (hru_actor_settings_.rel_tol_temp_soil_snow_ > 0) {
+    rel_tol_temp_soil_snow_ = hru_actor_settings_.rel_tol_temp_soil_snow_;
+  }
+  if (hru_actor_settings_.rel_tol_wat_snow_ > 0) {
+    rel_tol_wat_snow_ = hru_actor_settings_.rel_tol_wat_snow_;
+  }
+  if (hru_actor_settings_.rel_tol_matric_ > 0) {
+    rel_tol_matric_ = hru_actor_settings_.rel_tol_matric_;
+  }
+  if (hru_actor_settings_.rel_tol_aquifr_ > 0) {
+    rel_tol_aquifr_ = hru_actor_settings_.rel_tol_aquifr_;
+  }
+  if (hru_actor_settings_.abs_tol_temp_cas_ > 0) {
+    abs_tol_temp_cas_ = hru_actor_settings_.abs_tol_temp_cas_;
+  }
+  if (hru_actor_settings_.abs_tol_temp_veg_ > 0) {
+    abs_tol_temp_veg_ = hru_actor_settings_.abs_tol_temp_veg_;
+  }
+  if (hru_actor_settings_.abs_tol_wat_veg_ > 0) {
+    abs_tol_wat_veg_ = hru_actor_settings_.abs_tol_wat_veg_;
+  }
+  if (hru_actor_settings_.abs_tol_temp_soil_snow_ > 0) {
+    abs_tol_temp_soil_snow_ = hru_actor_settings_.abs_tol_temp_soil_snow_;
+  }
+  if (hru_actor_settings_.abs_tol_wat_snow_ > 0) {
+    abs_tol_wat_snow_ = hru_actor_settings_.abs_tol_wat_snow_;
+  }
+  if (hru_actor_settings_.abs_tol_matric_ > 0) {
+    abs_tol_matric_ = hru_actor_settings_.abs_tol_matric_;
+  }
+  if (hru_actor_settings_.abs_tol_aquifr_ > 0) {
+    abs_tol_aquifr_ = hru_actor_settings_.abs_tol_aquifr_;
+  }
+}
 
   CkChareID fileAccessChareID = file_access_chare_.ckGetChareID();
 
@@ -157,7 +229,11 @@ void JobChare::spawnGruActors()
                                fa_actor_settings_.num_timesteps_in_output_buffer_, fileAccessChareID, thishandle);
     std::unique_ptr<GRU> gru_obj = std::make_unique<GRU>(
         netcdf_index, job_index, gru_chare_proxy.ckGetChareID(), dt_init_factor_, rel_tol_,
-        abs_tol_, job_actor_settings_.max_run_attempts_);
+        abs_tol_,  rel_tol_temp_cas_, rel_tol_temp_veg_, rel_tol_wat_veg_,
+        rel_tol_temp_soil_snow_, rel_tol_wat_snow_, rel_tol_matric_,
+        rel_tol_aquifr_, abs_tol_temp_cas_, abs_tol_temp_veg_, abs_tol_wat_veg_,
+        abs_tol_temp_soil_snow_, abs_tol_wat_snow_, abs_tol_matric_,
+        abs_tol_aquifr_, job_actor_settings_.max_run_attempts_);
     gru_struc_->addGRU(std::move(gru_obj));
   }
   gru_struc_->decrementRetryAttempts();
@@ -185,8 +261,10 @@ void JobChare::finalizeJob()
   (timing_info_.getDuration("total_duration").value_or(-1.0) / 60) / 60,
   timing_info_.getDuration("init_duration").value_or(-1.0));
 
+  sleep(5);
+
   // Deallocate GRU_Struc
-  // gru_struc_.reset();
+  gru_struc_.reset();
   summa_init_struc_.reset();
   // Tell Parent we are done
   double total_duration = timing_info_.getDuration("total_duration").value_or(-1.0);
@@ -208,7 +286,14 @@ void JobChare::handleFinishedGRU(int job_index)
   gru_struc_->getGRU(job_index)->setSuccess();
   success_logger_->logSuccess(gru_struc_->getGRU(job_index)->getIndexNetcdf(),
                               gru_struc_->getGRU(job_index)->getIndexJob(),
-                              rel_tol_, abs_tol_);
+                              rel_tol_, abs_tol_
+                              rel_tol_temp_cas_, rel_tol_temp_veg_,
+                              rel_tol_wat_veg_, rel_tol_temp_soil_snow_,
+                              rel_tol_wat_snow_, rel_tol_matric_,
+                              rel_tol_aquifr_, abs_tol_temp_cas_,
+                              abs_tol_temp_veg_, abs_tol_wat_veg_,
+                              abs_tol_temp_soil_snow_, abs_tol_wat_snow_,
+                              abs_tol_matric_, abs_tol_aquifr_, default_tol_);
   std::string update_str =
       "GRU Finished: " + std::to_string(gru_struc_->getNumGruDone()) + "/" +
       std::to_string(gru_struc_->getNumGru()) + " -- GlobalGRU=" +
@@ -229,17 +314,69 @@ void JobChare::restartFailures()
 {
   logger_->log("Async Mode: Restarting Failed GRUs");
   CkPrintf("Async Mode: Restarting Failed GRUs\n");
-  if (rel_tol_ > 0 && abs_tol_ > 0)
-  {
-    rel_tol_ /= 10;
-    hru_actor_settings_.rel_tol_ = rel_tol_;
-    abs_tol_ /= 10;
-    hru_actor_settings_.abs_tol_ = abs_tol_;
-  }
-  else
-  {
-    dt_init_factor_ *= 2;
-  }
+
+  
+      auto tighten_tol = [&](double& tol, const double& min_tol, const std::string& name){
+        if (tol > min_tol) {
+          tol /= 10;
+          self_->println("Async Mode: Tightening tolerance");
+          self_->println("Async Mode: {} = {}", name, tol);
+          return true;
+        }
+        return false;
+      };
+
+      // Update tolerances (general and specific)
+      bool tol_updated = false;
+
+      tol_updated |= tighten_tol(rel_tol_, MIN_REL_TOL, "rel_tol_");
+      hru_actor_settings_.rel_tol_ = rel_tol_;
+
+      tol_updated |= tighten_tol(abs_tol_, MIN_ABS_TOL, "abs_tol_");
+      hru_actor_settings_.abs_tol_ = abs_tol_;
+
+      tol_updated |= tighten_tol(rel_tol_temp_cas_, MIN_REL_TOL, "rel_tol_temp_cas_");
+      hru_actor_settings_.rel_tol_temp_cas_ = rel_tol_temp_cas_;
+
+      tol_updated |= tighten_tol(rel_tol_temp_veg_, MIN_REL_TOL, "rel_tol_temp_veg_");
+      hru_actor_settings_.rel_tol_temp_veg_ = rel_tol_temp_veg_;
+
+      tol_updated |= tighten_tol(rel_tol_wat_veg_, MIN_REL_TOL, "rel_tol_wat_veg_");
+      hru_actor_settings_.rel_tol_wat_veg_ = rel_tol_wat_veg_;
+
+      tol_updated |= tighten_tol(rel_tol_temp_soil_snow_, MIN_REL_TOL, "rel_tol_temp_soil_snow_");
+      hru_actor_settings_.rel_tol_temp_soil_snow_ = rel_tol_temp_soil_snow_;
+
+      tol_updated |= tighten_tol(rel_tol_wat_snow_, MIN_REL_TOL, "rel_tol_wat_snow_");
+      hru_actor_settings_.rel_tol_wat_snow_ = rel_tol_wat_snow_;
+
+      tol_updated |= tighten_tol(rel_tol_matric_, MIN_REL_TOL, "rel_tol_matric_");
+      hru_actor_settings_.rel_tol_matric_ = rel_tol_matric_;
+
+      tol_updated |= tighten_tol(rel_tol_aquifr_, MIN_REL_TOL, "rel_tol_aquifr_");
+      hru_actor_settings_.rel_tol_aquifr_ = rel_tol_aquifr_;
+
+      tol_updated |= tighten_tol(abs_tol_temp_cas_, MIN_ABS_TOL, "abs_tol_temp_cas_");
+      hru_actor_settings_.abs_tol_temp_cas_ = abs_tol_temp_cas_;
+
+      tol_updated |= tighten_tol(abs_tol_temp_veg_, MIN_ABS_TOL, "abs_tol_temp_veg_");
+      hru_actor_settings_.abs_tol_temp_veg_ = abs_tol_temp_veg_;
+
+      tol_updated |= tighten_tol(abs_tol_wat_veg_, MIN_ABS_TOL, "abs_tol_wat_veg_");
+      hru_actor_settings_.abs_tol_wat_veg_ = abs_tol_wat_veg_;
+
+      tol_updated |= tighten_tol(abs_tol_temp_soil_snow_, MIN_ABS_TOL, "abs_tol_temp_soil_snow_");
+      hru_actor_settings_.abs_tol_temp_soil_snow_ = abs_tol_temp_soil_snow_;
+
+      tol_updated |= tighten_tol(abs_tol_wat_snow_, MIN_ABS_TOL, "abs_tol_wat_snow_");
+      hru_actor_settings_.abs_tol_wat_snow_ = abs_tol_wat_snow_;
+
+      tol_updated |= tighten_tol(abs_tol_matric_, MIN_ABS_TOL, "abs_tol_matric_");
+      hru_actor_settings_.abs_tol_matric_ = abs_tol_matric_;
+
+      tol_updated |= tighten_tol(abs_tol_aquifr_, MIN_ABS_TOL, "abs_tol_aquifr_");
+      hru_actor_settings_.abs_tol_aquifr_ = abs_tol_aquifr_; 
+
 
   // notify file_access_actor
   // TODO: Make it sync type in .ci so it waits untill finishing reconstruct()

@@ -87,18 +87,11 @@ SummaChare::SummaChare(int start_gru, int num_gru, std::string config_file,
 
 void SummaChare::doneJob(int num_gru_failed, double job_duration,
                          double read_duration, double write_duration) {
-
-  CkPrintf("Here\n");
-
   int num_success = current_batch_->getNumHRU() - num_gru_failed;
-  CkPrintf("Here1\n");
   batch_container_->updateBatchStats(current_batch_->getBatchID(), job_duration,
                                      read_duration, write_duration, num_success,
                                      num_gru_failed);
-
-  CkPrintf("Here2\n");
   num_gru_failed_ += num_gru_failed;
-
   if (!batch_container_->hasUnsolvedBatches()) {
     finalize();
     return;
