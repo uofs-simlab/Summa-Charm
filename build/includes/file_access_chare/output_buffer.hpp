@@ -153,9 +153,9 @@ class OutputBuffer {
     int allocateOutputBuffer(int num_timesteps);
     const std::optional<WriteOutputReturn*> addFailedGRU(int index_gru);
     const std::optional<WriteOutputReturn*> writeOutput(
-        int index_gru, caf::actor gru);
+        int index_gru, CkChareID  gru);
     const int writeOutputDA(const int output_step);
-    void reconstruct();
+    int reconstruct();
     int findPartitionIndex(int index);
 
 

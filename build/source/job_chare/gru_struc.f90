@@ -82,12 +82,33 @@ subroutine f_readDimension(start_gru, num_gru, file_gru, file_hru, &
   ! read and set GRU dimensions
   ! **********************************************************************************************
   ! get gru dimension of whole file
-  err = nf90_inq_dimid(ncID,"gru",gruDimId);                   if(err/=nf90_noerr)then; message=trim(message)//'problem finding gru dimension/'//trim(nf90_strerror(err)); return; end if
-  err = nf90_inquire_dimension(ncID, gruDimId, len = file_gru); if(err/=nf90_noerr)then; message=trim(message)//'problem reading gru dimension/'//trim(nf90_strerror(err)); return; end if
+  err = nf90_inq_dimid(ncID, "gru", gruDimId)
+  if (err /= nf90_noerr) then
+    message = trim(message) // &
+              'problem finding gru dimension/' // &
+              trim(nf90_strerror(err))
+    return
+  end if
+  err = nf90_inquire_dimension(ncID, gruDimId, len = file_gru)
+  if (err /= nf90_noerr) then
+    message = trim(message)//'problem reading gru dimension/'// &
+              trim(nf90_strerror(err))
+    return
+  end if
 
   ! get hru dimension of whole file
-  err = nf90_inq_dimid(ncID,"hru",hruDimId);                   if(err/=nf90_noerr)then; message=trim(message)//'problem finding hru dimension/'//trim(nf90_strerror(err)); return; end if
-  err = nf90_inquire_dimension(ncID, hruDimId, len = file_hru); if(err/=nf90_noerr)then; message=trim(message)//'problem reading hru dimension/'//trim(nf90_strerror(err)); return; end if
+  err = nf90_inq_dimid(ncID,"hru",hruDimId)
+  if(err/=nf90_noerr)then
+    message=trim(message)//'problem finding hru dimension/'// &
+      trim(nf90_strerror(err))
+    return
+  end if
+  err = nf90_inquire_dimension(ncID, hruDimId, len = file_hru)
+  if(err/=nf90_noerr)then
+    message=trim(message)//'problem reading hru dimension/'// &
+      trim(nf90_strerror(err))
+    return
+  end if
 
   ! allocate space for GRU indices
   allocate(gru_id(file_gru))

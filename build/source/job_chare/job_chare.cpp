@@ -88,7 +88,14 @@ JobChare::JobChare(Batch batch, bool enable_logging,
     CProxy_SummaChare(summa_chare_proxy_).reportError(-2, err_msg);
     return;
   }
-  summa_init_struc_->getInitTolerance(rel_tol_, abs_tol_);
+  summa_init_struc_->getInitTolerance(rel_tol_, abs_tol_, rel_tol_temp_cas_, 
+    rel_tol_temp_veg_, rel_tol_wat_veg_, 
+    rel_tol_temp_soil_snow_, rel_tol_wat_snow_, 
+    rel_tol_matric_, rel_tol_aquifr_, 
+    abs_tol_temp_cas_, abs_tol_temp_veg_, 
+    abs_tol_wat_veg_, abs_tol_temp_soil_snow_, 
+    abs_tol_wat_snow_, abs_tol_matric_, 
+    abs_tol_aquifr_, default_tol_);
 
   num_gru_info_ = NumGRUInfo(batch_.getStartHRU(), batch_.getStartHRU(), batch_.getNumHRU(),
                              batch_.getNumHRU(), gru_struc_->getFileGru(), false);
@@ -287,7 +294,7 @@ void JobChare::handleFinishedGRU(int job_index)
   gru_struc_->getGRU(job_index)->setSuccess();
   success_logger_->logSuccess(gru_struc_->getGRU(job_index)->getIndexNetcdf(),
                               gru_struc_->getGRU(job_index)->getIndexJob(),
-                              rel_tol_, abs_tol_
+                              rel_tol_, abs_tol_,
                               rel_tol_temp_cas_, rel_tol_temp_veg_,
                               rel_tol_wat_veg_, rel_tol_temp_soil_snow_,
                               rel_tol_wat_snow_, rel_tol_matric_,
@@ -320,8 +327,8 @@ void JobChare::restartFailures()
       auto tighten_tol = [&](double& tol, const double& min_tol, const std::string& name){
         if (tol > min_tol) {
           tol /= 10;
-          self_->println("Async Mode: Tightening tolerance");
-          self_->println("Async Mode: {} = {}", name, tol);
+          CkPrintf("Async Mode: Tightening tolerance\n");
+          CkPrintf("Async Mode: %s = %f\n", name.c_str(), tol);
           return true;
         }
         return false;

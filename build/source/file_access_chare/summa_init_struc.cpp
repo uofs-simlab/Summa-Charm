@@ -4,22 +4,18 @@
 
 int SummaInitStruc::allocate(int num_gru) {
   int err = 0;
-  void *err_msg_ptr = nullptr;
-  f_allocate(num_gru, err, &err_msg_ptr);
-  if (err != 0) {
-      const char *msg = static_cast<const char *>(err_msg_ptr);
-      std::cout << msg << std::endl;
+  std::unique_ptr<char[]> message(new char[256]);
+  f_allocate(num_gru, err, &message);
+  if (err != 0) std::cout << message.get() << std::endl;
   return err;
 }
 
 int SummaInitStruc::summa_paramSetup() {
   int err = 0;
-  void *err_msg_ptr = nullptr;
-  f_paramSetup(err, &err_msg_ptr);
-  if (err != 0) {
-      const char *msg = static_cast<const char *>(err_msg_ptr);
-      std::cout << msg << std::endl;
-  }
+  std::unique_ptr<char[]> message(new char[256]);
+  f_paramSetup(err, &message);
+  if (err != 0) std::cout << message.get() << std::endl;
+
   return err;
 }
 

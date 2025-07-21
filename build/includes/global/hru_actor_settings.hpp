@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <thread>
 #include "json.hpp"
+#include "pup.h"
 
 #define SUCCESS 0
 #define FAILURE -1
@@ -122,5 +123,32 @@ public:
     str += "Abs Tol Aquifr: " + std::to_string(abs_tol_aquifr_) + "\n";
     str += "Default Tolerances: " + std::to_string(default_tol_) + "\n";
     return str;
+  }
+
+  // PUP method for Charm++ serialization
+  template <typename PUPER>
+  void pup(PUPER &p) {
+    p | print_output_;
+    p | output_frequency_;
+    p | be_steps_;
+    p | rel_tol_;
+    p | rel_tol_temp_cas_;
+    p | rel_tol_temp_veg_;
+    p | rel_tol_wat_veg_;
+    p | rel_tol_temp_soil_snow_;
+    p | rel_tol_wat_snow_;
+    p | rel_tol_matric_;
+    p | rel_tol_aquifr_;
+    p | abs_tol_;
+    p | abs_tolWat_;
+    p | abs_tolNrg_;
+    p | abs_tol_temp_cas_;
+    p | abs_tol_temp_veg_;
+    p | abs_tol_wat_veg_;
+    p | abs_tol_temp_soil_snow_;
+    p | abs_tol_wat_snow_;
+    p | abs_tol_matric_;
+    p | abs_tol_aquifr_;
+    p | default_tol_;
   }
 };

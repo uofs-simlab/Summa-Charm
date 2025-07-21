@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <thread>
 #include "json.hpp"
+#include "pup.h"
 
 #define SUCCESS 0
 #define FAILURE -1
@@ -46,5 +47,14 @@ public:
     str += "Data Assimilation Mode: " + std::to_string(data_assimilation_mode_) + "\n";
     str += "Batch Size: " + std::to_string(batch_size_) + "\n";
     return str;
+  }
+
+  // PUP method for Charm++ serialization
+  template <typename PUPER>
+  void pup(PUPER &p) {
+    p | file_manager_path_;
+    p | max_run_attempts_;
+    p | data_assimilation_mode_;
+    p | batch_size_;
   }
 };

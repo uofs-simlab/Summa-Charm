@@ -19,14 +19,14 @@ extern "C"
   bool f_get_default_tol();
   void f_set_default_tol(bool new_tol);
 }
-}
 
 // Enum for GRU state
 enum class gru_state
 {
   running,
   failed,
-  succeeded
+  succeeded,
+  restarted
 };
 
 /** Gru Information (meant to mimic gru_struc)*/
@@ -112,7 +112,7 @@ public:
   // Getters
   inline int getIndexNetcdf() const { return index_netcdf_; }
   inline int getIndexJob() const { return index_job_; }
-  inline caf::actor getActorRef() const { return actor_ref_; }
+  inline CkChareID  getActorRef() const { return actor_ref_; }
   inline double getRunTime() const { return run_time_; }
 
   inline int getBeSteps() const { return be_steps_; }
@@ -198,7 +198,7 @@ public:
   // Methods
   inline bool isFailed() const { return state_ == gru_state::failed; }
   inline void decrementAttemptsLeft() { attempts_left_--; }
-  inline void setActorRef(caf::actor gru_actor) { actor_ref_ = gru_actor; }
+  inline void setActorRef(CkChareID  gru_actor) { actor_ref_ = gru_actor; }
 };
 
 // Structure for node GRU information

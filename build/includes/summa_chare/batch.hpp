@@ -47,4 +47,18 @@ class Batch {
 
     // specific method - commented out for Charm++ version
     void assignToActor(std::string hostname, CkChareID assigned_actor);
+
+    // PUP method for Charm++ serialization
+    template <typename PUPER>
+    void pup(PUPER &p) {
+        p | batch_id_;
+        p | start_hru_;
+        p | num_hru_;
+        p | run_time_;
+        p | read_time_;
+        p | write_time_;
+        p | assigned_to_actor_;
+        p | solved_;
+        p | log_dir_;
+    }
 };

@@ -46,7 +46,6 @@ private:
   int num_steps_;
   bool write_params_flag_ = true;
   std::unique_ptr<forcingFileContainer> forcing_files_;
-  std::unique_ptr<Output_Container> output_container_;
   std::unique_ptr<OutputBuffer> output_buffer_;
 
   // Checkpointing variables

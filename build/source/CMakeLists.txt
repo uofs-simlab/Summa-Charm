@@ -18,6 +18,7 @@ set(INTERFACE
     ${CHARES_DIR}/global/cppwrap_datatypes.f90
     ${CHARES_DIR}/global/cppwrap_metadata.f90
     ${CHARES_DIR}/global/c_interface_module.f90
+    ${CHARES_DIR}/global/global_tol.f90
     CACHE INTERNAL "INTERFACE")
 set(SYS_INIT_INTERFACE
     ${SYS_INIT_DIR}/batch_distributer_chare.f90

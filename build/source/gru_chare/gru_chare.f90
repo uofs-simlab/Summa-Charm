@@ -32,47 +32,97 @@ subroutine f_getNumHruInGru(indx_gru, num_hru) bind(C, name="f_getNumHruInGru")
   num_hru = gru_struc(indx_gru)%hruCount
 end subroutine f_getNumHruInGru
 
-subroutine f_setGruTolerances(handle_gru_data, rel_tol, abs_tol) bind(C, name="f_setGruTolerances")
+subroutine f_setGruTolerances(handle_gru_data, be_steps, &
+  ! Relative Tolerances
+  rel_tol, rel_tol_temp_cas, rel_tol_temp_veg, rel_tol_wat_veg, &
+  rel_tol_temp_soil_snow, rel_tol_wat_snow, rel_tol_matric, rel_tol_aquifr, &
+  ! Absolute Tolerances 
+  abs_tol, abs_tolWat, abs_tolNrg, abs_tol_temp_cas, abs_tol_temp_veg, &
+  abs_tol_wat_veg, abs_tol_temp_snow_soil, abs_tol_wat_snow, abs_tol_matric, &
+  abs_tol_aquifr)  bind(C, name="f_setGruTolerances")
+
+  USE global_tol
   USE actor_data_types,only:gru_type
   USE var_lookup,only: iLookPARAM
 
   implicit none
-  type(c_ptr), intent(in),value :: handle_gru_data
-  real(c_double), intent(in)    :: rel_tol
-  real(c_double), intent(in)    :: abs_tol
+  type(c_ptr), intent(in),value   :: handle_gru_data
+  integer(c_int), intent(in)      :: be_steps
+  ! Relative Tolerances
+  real(c_double), intent(in)       :: rel_tol
+  real(c_double), intent(inout)    :: rel_tol_temp_cas
+  real(c_double), intent(inout)    :: rel_tol_temp_veg
+  real(c_double), intent(inout)    :: rel_tol_wat_veg
+  real(c_double), intent(inout)    :: rel_tol_temp_soil_snow
+  real(c_double), intent(inout)    :: rel_tol_wat_snow
+  real(c_double), intent(inout)    :: rel_tol_matric
+  real(c_double), intent(inout)    :: rel_tol_aquifr
+  ! Absolute Tolerances
+  real(c_double), intent(in)       :: abs_tol
+  real(c_double), intent(in)       :: abs_tolWat
+  real(c_double), intent(in)       :: abs_tolNrg
+  real(c_double), intent(inout)    :: abs_tol_temp_cas
+  real(c_double), intent(inout)    :: abs_tol_temp_veg
+  real(c_double), intent(inout)    :: abs_tol_wat_veg
+  real(c_double), intent(inout)    :: abs_tol_temp_snow_soil
+  real(c_double), intent(inout)    :: abs_tol_wat_snow
+  real(c_double), intent(inout)    :: abs_tol_matric
+  real(c_double), intent(inout)    :: abs_tol_aquifr
+
   ! Local Varaibles
   integer(i4b)                  :: iHRU
 
   type(gru_type),pointer :: gru_data
   call c_f_pointer(handle_gru_data, gru_data)
 
+  ! Apply default tol if flag is true
+  if (default_tol) then
+    rel_tol_temp_cas = rel_tol
+    rel_tol_temp_veg = rel_tol
+    rel_tol_wat_veg = rel_tol
+    rel_tol_temp_soil_snow = rel_tol
+    rel_tol_wat_snow = rel_tol
+    rel_tol_matric = rel_tol
+    rel_tol_aquifr = rel_tol
+    abs_tol_temp_cas = abs_tol
+    abs_tol_temp_veg = abs_tol
+    abs_tol_temp_snow_soil = abs_tol
+    abs_tol_wat_snow = abs_tol
+    abs_tol_wat_veg = abs_tol
+    abs_tol_matric = abs_tol
+    abs_tol_aquifr = abs_tol
+  end if
   do iHRU = 1, size(gru_data%hru)
+    if (be_steps>0) then
+      gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%be_steps)%dat(1) = be_steps
+    end if
     ! Set rtols
     gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%relConvTol_liquid)%dat(1) = rel_tol
     gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%relConvTol_matric)%dat(1) = rel_tol
     gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%relConvTol_energy)%dat(1) = rel_tol
     gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%relConvTol_aquifr)%dat(1) = rel_tol
-    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%relTolTempCas)%dat(1) = rel_tol
-    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%relTolTempVeg)%dat(1) = rel_tol
-    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%relTolWatVeg)%dat(1) = rel_tol
-    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%relTolTempSoilSnow)%dat(1) = rel_tol
-    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%relTolWatSnow)%dat(1) = rel_tol
-    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%relTolMatric)%dat(1) = rel_tol
-    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%relTolAquifr)%dat(1) = rel_tol
-  
+    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%relTolTempCas)%dat(1) = rel_tol_temp_cas
+    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%relTolTempVeg)%dat(1) = rel_tol_temp_veg
+    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%relTolWatVeg)%dat(1) = rel_tol_wat_veg
+    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%relTolTempSoilSnow)%dat(1) = rel_tol_temp_soil_snow
+    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%relTolWatSnow)%dat(1) = rel_tol_wat_snow
+    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%relTolMatric)%dat(1) = rel_tol_matric
+    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%relTolAquifr)%dat(1) = rel_tol_aquifr
+
+    ! Set atols
     gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%absConvTol_liquid)%dat(1) = abs_tol 
     gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%absConvTol_matric)%dat(1) = abs_tol 
     gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%absConvTol_energy)%dat(1) = abs_tol 
     gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%absConvTol_aquifr)%dat(1) = abs_tol 
-    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%absTolTempCas)%dat(1) = abs_tol 
-    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%absTolTempVeg)%dat(1) = abs_tol 
-    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%absTolWatVeg)%dat(1) = abs_tol 
-    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%absTolTempSoilSnow)%dat(1) = abs_tol 
-    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%absTolWatSnow)%dat(1) = abs_tol 
-    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%absTolMatric)%dat(1) = abs_tol 
-    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%absTolAquifr)%dat(1) = abs_tol 
-  end do
+    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%absTolTempCas)%dat(1) = abs_tol_temp_cas
+    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%absTolTempVeg)%dat(1) = abs_tol_temp_veg
+    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%absTolWatVeg)%dat(1) = abs_tol_wat_veg 
+    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%absTolTempSoilSnow)%dat(1) = abs_tol_temp_snow_soil 
+    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%absTolWatSnow)%dat(1) = abs_tol_wat_snow
+    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%absTolMatric)%dat(1) = abs_tol_matric 
+    gru_data%hru(iHRU)%mparStruct%var(iLookPARAM%absTolAquifr)%dat(1) = abs_tol_aquifr 
 
+  end do
 
 end subroutine f_setGruTolerances
 
@@ -812,7 +862,7 @@ subroutine allocateOutputBuffer(indx_gru, num_hru, output_buffer_steps, &
           call alloc_outputStruc(indx_meta,summa_struct(1)%indxStruct%gru(indx_gru)%hru(iHRU), &
                                  nSteps=output_buffer_steps,nSnow=maxSnowLayers,nSoil=nSoil,err=err,str_name='indx',message=message);
           call alloc_outputStruc(statIndx_meta(:)%var_info,summa_struct(1)%indxStat%gru(indx_gru)%hru(iHRU), &
-                                 nSteps=output_buffer_steps,nSnow=maxSnowLayers,nSoil=nSoil,err=err,message=message);
+                                 nSteps=output_buffer_steps,nSnow=maxSnowLayers,nSoil=nSoil,err=err,str_name='indx',message=message);
         case('prog')
           call alloc_outputStruc(prog_meta,summa_struct(1)%progStruct%gru(indx_gru)%hru(iHRU), &
                                   nSteps=output_buffer_steps,nSnow=maxSnowLayers,nSoil=nSoil,err=err,str_name='prog',message=message);
@@ -1049,7 +1099,7 @@ subroutine allocateDat_rkind_nSteps(metadata,varData,nSnow, nSoil, &
   USE var_lookup,only:iLookVarType           ! look up structure for variable typed
 
   USE globalData,only:nTimeDelay            ! number of timesteps in the time delay histogram
-  USE globalData,only:nBand                 ! number of spectral bands
+  USE globalData,only:nSpecBand                 ! number of spectral bands
   USE var_lookup,only:maxvarFreq             ! allocation dimension (output frequency)
   USE get_ixName_module,only:get_varTypeName       ! to access type strings for error messages
 
@@ -1073,7 +1123,7 @@ subroutine allocateDat_rkind_nSteps(metadata,varData,nSnow, nSoil, &
   do iStep=1, nSteps
     select case(metadata(iVar)%vartype)
       case(iLookVarType%scalarv); allocate(varData%var(iVar)%tim(iStep)%dat(1),stat=err)
-      case(iLookVarType%wLength); allocate(varData%var(iVar)%tim(iStep)%dat(nBand),stat=err)
+      case(iLookVarType%wLength); allocate(varData%var(iVar)%tim(iStep)%dat(nSpecBand),stat=err)
       case(iLookVarType%midSnow); allocate(varData%var(iVar)%tim(iStep)%dat(nSnow),stat=err)
       case(iLookVarType%midSoil); allocate(varData%var(iVar)%tim(iStep)%dat(nSoil),stat=err)
       case(iLookVarType%midToto); allocate(varData%var(iVar)%tim(iStep)%dat(nLayers),stat=err)
@@ -1097,7 +1147,7 @@ subroutine allocateDat_rkind(metadata,varData,nSnow,nSoil,err,message)
   USE data_types
   USE var_lookup,only:iLookVarType           ! look up structure for variable typed
   USE var_lookup,only:maxvarFreq             ! allocation dimension (output frequency)
-  USE globalData,only:nBand                 ! number of spectral bands
+  USE globalData,only:nSpecBand                 ! number of spectral bands
   USE globalData,only:nTimeDelay            ! number of timesteps in the time delay histogram
   implicit none
   type(var_info),intent(in)         :: metadata(:)
@@ -1120,7 +1170,7 @@ subroutine allocateDat_rkind(metadata,varData,nSnow,nSoil,err,message)
   do iVar=1, nVars
     select case(metadata(iVar)%vartype)
     case(iLookVarType%scalarv); allocate(varData%var(iVar)%dat(1),stat=err)
-    case(iLookVarType%wLength); allocate(varData%var(iVar)%dat(nBand),stat=err)
+    case(iLookVarType%wLength); allocate(varData%var(iVar)%dat(nSpecBand),stat=err)
     case(iLookVarType%midSnow); allocate(varData%var(iVar)%dat(nSnow),stat=err)
     case(iLookVarType%midSoil); allocate(varData%var(iVar)%dat(nSoil),stat=err)
     case(iLookVarType%midToto); allocate(varData%var(iVar)%dat(nLayers),stat=err)
@@ -1146,7 +1196,7 @@ subroutine allocateDat_int(metadata,varData,nSnow, nSoil, &
   USE actor_data_types
   USE var_lookup,only:iLookVarType           ! look up structure for variable typed
   USE var_lookup,only:maxvarFreq             ! allocation dimension (output frequency)
-  USE globalData,only:nBand                 ! number of spectral bands
+  USE globalData,only:nSpecBand                 ! number of spectral bands
   USE globalData,only:nTimeDelay            ! number of timesteps in the time delay histogram
   implicit none
   type(var_info),intent(in)            :: metadata(:)
@@ -1167,7 +1217,7 @@ subroutine allocateDat_int(metadata,varData,nSnow, nSoil, &
   do iStep=1, nSteps
     select case(metadata(iVar)%vartype)
       case(iLookVarType%scalarv); allocate(varData%var(iVar)%tim(iStep)%dat(1),stat=err)
-      case(iLookVarType%wLength); allocate(varData%var(iVar)%tim(iStep)%dat(nBand),stat=err)
+      case(iLookVarType%wLength); allocate(varData%var(iVar)%tim(iStep)%dat(nSpecBand),stat=err)
       case(iLookVarType%midSnow); allocate(varData%var(iVar)%tim(iStep)%dat(nSnow),stat=err)
       case(iLookVarType%midSoil); allocate(varData%var(iVar)%tim(iStep)%dat(nSoil),stat=err)
       case(iLookVarType%midToto); allocate(varData%var(iVar)%tim(iStep)%dat(nLayers),stat=err)
