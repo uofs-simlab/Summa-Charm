@@ -8,7 +8,7 @@ outputPath           '/u1/pma753/SummaChare/test/output/' !
 decisionsFile        'modelDecisions.txt' !  Relative to settingsPath
 outputControlFile    'outputControl.txt' !  Relative to settingsPath 
 globalHruParamFile   'localParamInfo.txt' !  Relative to settingsPath 
-globalGruParamFile   'basinParamInfo.txt' !  Relative to settingsPath 
+globalGruParamFile   'basinParamInfo.txt' !  Relative to settingsPatho 
 attributeFile        'attributes.nc' ! Relative to settingsPath 
 trialParamFile       'trialParams.nc' ! Relative to settingsPath
 forcingListFile      'forcingFileList.txt' ! Relative to settingsPath 

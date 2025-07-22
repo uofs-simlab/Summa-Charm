@@ -73,7 +73,7 @@ void GruChare::newForcingFile(int num_forc_steps, int iFile)
         return;
     }
     forcingStep_ = 1;
-    runHRU();
+    thisProxy.runHRU();
 }
 
 void GruChare::setNumStepsBeforeWrite(int num_steps)
@@ -90,7 +90,7 @@ void GruChare::runHRU()
     {
         if (forcingStep_ > stepsInCurrentFFile_)
         {
-            CProxy_FileAccessChare(file_access_actor_).accessForcing(iFile_ + 1, thishandle);
+            CProxy_FileAccessChare(file_access_actor_).accessForcing(iFile_ + 1, thisProxy.ckGetChareID());
             break;
         }
         num_steps_until_write_--;
@@ -137,7 +137,7 @@ void GruChare::runHRU()
     // Our output structure is full
     if (num_steps_until_write_ <= 0)
     {
-        CProxy_FileAccessChare(file_access_actor_).writeOutput(job_index_, thishandle);
+        CProxy_FileAccessChare(file_access_actor_).writeOutput(job_index_, thisProxy.ckGetChareID());
     }
 }
 
@@ -162,7 +162,7 @@ void GruChare::updateHRU()
 {
     int output_steps = CProxy_FileAccessChare(file_access_actor_).getNumOutputSteps(job_index_);
     num_steps_until_write_ = output_steps;
-    CProxy_FileAccessChare(file_access_actor_).accessForcing(iFile_, thishandle);
+    CProxy_FileAccessChare(file_access_actor_).accessForcing(iFile_, thisProxy.ckGetChareID());
 }
 
 

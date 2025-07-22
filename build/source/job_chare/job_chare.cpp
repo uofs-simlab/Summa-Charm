@@ -108,7 +108,7 @@ JobChare::JobChare(Batch batch, bool enable_logging,
   }
 
   // Start File Access Actor and Become User Selected Mode
-  file_access_chare_ = CProxy_FileAccessChare::ckNew(num_gru_info_, fa_actor_settings_, thishandle);
+  file_access_chare_ = CProxy_FileAccessChare::ckNew(num_gru_info_, fa_actor_settings_, thisProxy.ckGetChareID());
 
   int num_timesteps = file_access_chare_.initFileAccessChare(gru_struc_->getFileGru(), gru_struc_->getNumHru());
   if (num_timesteps < 0)
@@ -233,7 +233,7 @@ void JobChare::spawnGruActors()
 
     CProxy_GruChare gru_chare_proxy =
         CProxy_GruChare::ckNew(netcdf_index, job_index, num_steps_, hru_actor_settings_,
-                               fa_actor_settings_.num_timesteps_in_output_buffer_, fileAccessChareID, thishandle);
+                               fa_actor_settings_.num_timesteps_in_output_buffer_, fileAccessChareID, thisProxy.ckGetChareID());
     std::unique_ptr<GRU> gru_obj = std::make_unique<GRU>(
         netcdf_index, job_index, gru_chare_proxy.ckGetChareID(), dt_init_factor_, rel_tol_,
         abs_tol_,  rel_tol_temp_cas_, rel_tol_temp_veg_, rel_tol_wat_veg_,
@@ -269,7 +269,6 @@ void JobChare::finalizeJob()
   (timing_info_.getDuration("total_duration").value_or(-1.0) / 60) / 60,
   timing_info_.getDuration("init_duration").value_or(-1.0));
 
-  sleep(5);
 
   // Deallocate GRU_Struc
   gru_struc_.reset();
@@ -402,7 +401,7 @@ void JobChare::restartFailures()
     int netcdf_index = job_index + gru_struc_->getStartGru() - 1;
     CProxy_GruChare gru_chare_proxy =
         CProxy_GruChare::ckNew(netcdf_index, job_index, num_steps_, hru_actor_settings_,
-                               fa_actor_settings_.num_timesteps_in_output_buffer_, file_access_chare_, thishandle);
+                               fa_actor_settings_.num_timesteps_in_output_buffer_, file_access_chare_, thisProxy.ckGetChareID());
     gru_struc_->decrementNumGruFailed();
     std::unique_ptr<GRU> gru_obj = std::make_unique<GRU>(
         netcdf_index, job_index, gru_chare_proxy.ckGetChareID(), dt_init_factor_, rel_tol_,

@@ -21,12 +21,10 @@ int SummaInitStruc::summa_paramSetup() {
 
 int SummaInitStruc::summa_readRestart() {
   int err = 0;
-  void *err_msg_ptr = nullptr;
-  f_readRestart(err, &err_msg_ptr);
-  if (err != 0) {
-      const char *msg = static_cast<const char *>(err_msg_ptr);
-      std::cout << msg << std::endl;
-  }
+  std::unique_ptr<char[]> message(new char[256]);
+  f_readRestart(err, &message);
+  if (err != 0) std::cout << message.get() << std::endl;
+
   return err;
 }
 

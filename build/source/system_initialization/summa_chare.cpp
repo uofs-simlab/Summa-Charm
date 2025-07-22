@@ -133,7 +133,7 @@ int SummaChare::spawnJob() {
   current_batch_ = std::make_shared<Batch>(batch.value());
   current_job_ = CProxy_JobChare::ckNew(
       batch.value(), summa_actor_settings_.enable_logging_, job_actor_settings_,
-      fa_actor_settings_, hru_actor_settings_, thishandle, file_gru_);
+      fa_actor_settings_, hru_actor_settings_, thisProxy.ckGetChareID(), file_gru_);
   return 0;
 }
 
