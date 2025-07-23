@@ -38,7 +38,7 @@ GruChare::GruChare(int netcdf_index, int job_index,
         return;
     }
 
-     f_setGruTolerances(gru_data_.get(), hru_actor_settings_.be_steps_,
+    f_setGruTolerances(gru_data_.get(), hru_actor_settings_.be_steps_,
       // Relative Tolerances
       hru_actor_settings_.rel_tol_, hru_actor_settings_.rel_tol_temp_cas_,
       hru_actor_settings_.rel_tol_temp_veg_, 
@@ -134,6 +134,7 @@ void GruChare::runHRU()
             break;
         }
     }
+    
     // Our output structure is full
     if (num_steps_until_write_ <= 0)
     {

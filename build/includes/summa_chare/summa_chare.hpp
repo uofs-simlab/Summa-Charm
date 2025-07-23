@@ -28,36 +28,24 @@ public:
   int createLogDirectory();
   void finalize();
 
-  template <typename T>
-  std::optional<T> getSettings(json settings, std::string key_1,
-                               std::string key_2)
-  {
-    try
-    {
-      if (settings.find(key_1) != settings.end())
-      {
+  template<typename T> std::optional<T> getSettings(json settings, std::string key_1, std::string key_2) {
+    try {
+      if (settings.find(key_1) != settings.end()) {
         json key_1_settings = settings[key_1];
 
         // find value behind second key
-        if (key_1_settings.find(key_2) != key_1_settings.end())
-        {
+        if (key_1_settings.find(key_2) != key_1_settings.end()) {
           return key_1_settings[key_2];
-        }
-        else
+        } else 
           return {};
-      }
-      else
-      {
+
+      } else {
         return {}; // return none in the optional (error value)
       }
-    }
-    catch (json::exception &e)
-    {
-      std::cout << e.what() << "\n"
-                << key_1 << "\n"
-                << key_2 << "\n";
+    } catch (json::exception& e) {
+      std::cout << e.what() << "\n" << key_1 << "\n" << key_2 << "\n";
       return {};
-    }
+    }                           
   }
 
   std::optional<std::vector<std::string>> getSettingsArray(
@@ -73,16 +61,17 @@ private:
   int start_gru_;
   int num_gru_;
   int file_gru_;
-  int num_gru_failed_;
+  int num_gru_failed_ = 0;
   std::string master_file_;
   std::string config_file_;
   std::string output_file_suffix_;
   std::string log_folder_;
   CkChareID current_job_;
 
-  std::unique_ptr<FileManager> file_manager_;
   std::unique_ptr<BatchContainer> batch_container_;
-  std::shared_ptr<Batch> current_batch_;
+  std::shared_ptr<const Batch> current_batch_;
+
+  std::unique_ptr<FileManager> file_manager_;
   std::unique_ptr<SummaGlobalData> global_fortran_state_;
 
   int readSettings(std::string config_file);

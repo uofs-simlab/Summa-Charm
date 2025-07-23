@@ -7,11 +7,9 @@ module JobChare {
   include "hru_actor_settings.hpp";
   
   chare JobChare {
-    entry JobChare(Batch batch, bool enable_logging, 
-                   JobActorSettings job_actor_settings,
-                   FileAccessActorSettings fa_actor_settings,
-                   HRUActorSettings hru_actor_settings,
-                   CkChareID summa_chare_proxy, int file_gru);
+    entry JobChare(Batch batch, bool enable_logging, JobActorSettings job_actor_settings,
+                   FileAccessActorSettings fa_actor_settings, HRUActorSettings hru_actor_settings,
+                   CkChareID summa_chare_proxy);
     entry void handleGruChareError(int job_index, int timestep, int err_code, std::string err_msg);
     entry void handleFinishedGRU(int job_index);
     entry void handleGRUError(int err_code, int job_index, int timestep, std::string err_msg);

@@ -12,8 +12,8 @@ JobChare::JobChare(Batch batch, bool enable_logging,
                    JobActorSettings job_actor_settings,
                    FileAccessActorSettings fa_actor_settings,
                    HRUActorSettings hru_actor_settings,
-                   CkChareID summa_chare_proxy, int file_gru)
-    : CBase_JobChare(), batch_(batch), file_gru_(file_gru),
+                   CkChareID summa_chare_proxy)
+    : CBase_JobChare(), batch_(batch),
       summa_chare_proxy_(summa_chare_proxy), enable_logging_(enable_logging),
       job_actor_settings_(job_actor_settings),
       fa_actor_settings_(fa_actor_settings),
@@ -48,9 +48,6 @@ JobChare::JobChare(Batch batch, bool enable_logging,
   }
 
   // GruStruc Initialization
-  // if (gru_struc_){
-  //   gru_struc_.reset(); // Reset if already initialized
-  // }
   gru_struc_ =
       std::make_unique<GruStruc>(batch_.getStartHRU(), batch_.getNumHRU(),
                                  job_actor_settings_.max_run_attempts_);
@@ -89,23 +86,18 @@ JobChare::JobChare(Batch batch, bool enable_logging,
     return;
   }
   summa_init_struc_->getInitTolerance(rel_tol_, abs_tol_, rel_tol_temp_cas_, 
-    rel_tol_temp_veg_, rel_tol_wat_veg_, 
-    rel_tol_temp_soil_snow_, rel_tol_wat_snow_, 
-    rel_tol_matric_, rel_tol_aquifr_, 
-    abs_tol_temp_cas_, abs_tol_temp_veg_, 
-    abs_tol_wat_veg_, abs_tol_temp_soil_snow_, 
-    abs_tol_wat_snow_, abs_tol_matric_, 
-    abs_tol_aquifr_, default_tol_);
+      rel_tol_temp_veg_, rel_tol_wat_veg_, 
+      rel_tol_temp_soil_snow_, rel_tol_wat_snow_, 
+      rel_tol_matric_, rel_tol_aquifr_, 
+      abs_tol_temp_cas_, abs_tol_temp_veg_, 
+      abs_tol_wat_veg_, abs_tol_temp_soil_snow_, 
+      abs_tol_wat_snow_, abs_tol_matric_, 
+      abs_tol_aquifr_, default_tol_);
 
   num_gru_info_ = NumGRUInfo(batch_.getStartHRU(), batch_.getStartHRU(), batch_.getNumHRU(),
                              batch_.getNumHRU(), gru_struc_->getFileGru(), false);
 
-  // Set the file_access_actor settings depending on data assimilation mode
-  if (job_actor_settings_.data_assimilation_mode_)
-  {
-    fa_actor_settings_.num_partitions_in_output_buffer_ = 1;
-    fa_actor_settings_.num_timesteps_in_output_buffer_ = 2;
-  }
+
 
   // Start File Access Actor and Become User Selected Mode
   file_access_chare_ = CProxy_FileAccessChare::ckNew(num_gru_info_, fa_actor_settings_, thisProxy.ckGetChareID());
@@ -224,7 +216,7 @@ void JobChare::spawnGruActors()
 
   CkChareID fileAccessChareID = file_access_chare_.ckGetChareID();
 
-  CkPrintf("JobChare: NumGRU = %d", gru_struc_->getNumGru());
+  CkPrintf("JobChare: NumGRU = %d\n", gru_struc_->getNumGru());
 
   for (int i = 0; i < gru_struc_->getNumGru(); i++)
   {
@@ -271,8 +263,8 @@ void JobChare::finalizeJob()
 
 
   // Deallocate GRU_Struc
-  gru_struc_.reset();
-  summa_init_struc_.reset();
+  // gru_struc_.reset();
+  // summa_init_struc_.reset();
   // Tell Parent we are done
   double total_duration = timing_info_.getDuration("total_duration").value_or(-1.0);
   double read_duration = std::get<0>(read_write_duration);

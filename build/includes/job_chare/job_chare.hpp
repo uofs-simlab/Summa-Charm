@@ -35,7 +35,6 @@ class JobChare : public CBase_JobChare {
 
 private:
   int counter_ = 0; // Counter for the number of GRUs processed
-  int file_gru_; 
   CkChareID summa_chare_proxy_;
   CProxy_FileAccessChare file_access_chare_;
 
@@ -105,7 +104,7 @@ public:
            JobActorSettings job_actor_settings,
            FileAccessActorSettings fa_actor_settings,
            HRUActorSettings hru_actor_settings,
-           CkChareID summa_chare_proxy, int file_gru);
+           CkChareID summa_chare_proxy);
 
   void spawnGruActors();
   void doneHRU(int job_index);
@@ -145,7 +144,7 @@ struct job_state {
   std::unique_ptr<SuccessLogger> success_logger;
   // Actor References
   CkChareID file_access_actor; // actor reference for the file_access_actor
-  CkChareID parent;            // actor reference to the top-level SummaActor
+  CkChareID summa_chare_proxy;            // actor reference to the top-level SummaActor
 
   Batch batch; // Information about the number of HRUs and starting point 
 

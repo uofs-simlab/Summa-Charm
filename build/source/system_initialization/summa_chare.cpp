@@ -13,6 +13,10 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+extern "C" { 
+  void f_set_default_tol(bool new_tol);
+}
+
 // Forward declaration
 using json = nlohmann::json;
 
@@ -37,8 +41,7 @@ SummaChare::SummaChare(int start_gru, int num_gru, std::string config_file,
   timing_info_.addTimePoint("total_duration");
   timing_info_.updateStartPoint("total_duration");
 
-  file_manager_ =
-      std::make_unique<FileManager>(job_actor_settings_.file_manager_path_);
+  file_manager_ = std::make_unique<FileManager>(job_actor_settings_.file_manager_path_);
   auto err_msg = file_manager_->setTimesDirsAndFiles();
   if (!err_msg.empty()) {
     CkPrintf("ERROR--File Manager: %s\n", err_msg.c_str());
@@ -76,8 +79,7 @@ SummaChare::SummaChare(int start_gru, int num_gru, std::string config_file,
 
   batch_container_ = std::make_unique<BatchContainer>(start_gru_, num_gru_,
     summa_actor_settings_.max_gru_per_job_, log_folder_);
-  CkPrintf("\n\nStarting SUMMA Chare with %d Batches\n\n",
-           batch_container_->getBatchesRemaining());
+  CkPrintf("\n\nStarting SUMMA Chare with %d Batches\n\n", batch_container_->getBatchesRemaining());
 
   if (spawnJob() != 0) {
     CkPrintf("ERROR--Summa_Actor: Unable To Spawn Job\n");
@@ -133,30 +135,30 @@ int SummaChare::spawnJob() {
   current_batch_ = std::make_shared<Batch>(batch.value());
   current_job_ = CProxy_JobChare::ckNew(
       batch.value(), summa_actor_settings_.enable_logging_, job_actor_settings_,
-      fa_actor_settings_, hru_actor_settings_, thisProxy.ckGetChareID(), file_gru_);
+      fa_actor_settings_, hru_actor_settings_, thisProxy.ckGetChareID());
   return 0;
 }
 
 bool create_directories(const std::string &path) {
-  struct stat info;
+    struct stat info;
 
-  if (stat(path.c_str(), &info) != 0) {
-    // Directory does not exist
-    if (errno == ENOENT) {
-      if (mkdir(path.c_str(), 0755) != 0) {
+    if (stat(path.c_str(), &info) != 0) {
+        // Directory does not exist
+        if (errno == ENOENT) {
+            if (mkdir(path.c_str(), 0755) != 0) {
         std::cerr << "Error creating directory: " << strerror(errno)
                   << std::endl;
+                return false;
+            }
+        } else {
+            std::cerr << "Error checking directory: " << strerror(errno) << std::endl;
+            return false;
+        }
+    } else if (!(info.st_mode & S_IFDIR)) {
+        std::cerr << "Path exists but is not a directory" << std::endl;
         return false;
-      }
-    } else {
-      std::cerr << "Error checking directory: " << strerror(errno) << std::endl;
-      return false;
     }
-  } else if (!(info.st_mode & S_IFDIR)) {
-    std::cerr << "Path exists but is not a directory" << std::endl;
-    return false;
-  }
-  return true;
+    return true;
 }
 int SummaChare::createLogDirectory() {
   if (summa_actor_settings_.enable_logging_) {
@@ -165,10 +167,10 @@ int SummaChare::createLogDirectory() {
     std::tm *now_tm = std::localtime(&now_c);
     std::stringstream ss;
     ss << std::put_time(now_tm, "%m_%d_%H:%M");
-    log_folder_ = "startgru-" + std::to_string(start_gru_) + "_endgru-" +
-                  std::to_string(start_gru_ + num_gru_ - 1) + "_" + ss.str();
+    log_folder_ = "startgru-" + std::to_string(start_gru_) + "_endgru-" + 
+        std::to_string(start_gru_ + num_gru_ - 1) + "_" + ss.str();
     if (!summa_actor_settings_.log_dir_.empty())
-      log_folder_ = summa_actor_settings_.log_dir_ + "/" + log_folder_;
+        log_folder_ = summa_actor_settings_.log_dir_ + "/" + log_folder_;
 
     return (create_directories(log_folder_)) ? 0 : -1;
   } else {
@@ -245,13 +247,52 @@ int SummaChare::readSettings(std::string config_file) {
       getSettings<int>(json_settings, "Job_Actor", "batch_size").value_or(10));
 
   hru_actor_settings_ = HRUActorSettings(
-      getSettings<bool>(json_settings, "HRU_Actor", "print_output")
-          .value_or(true),
-      getSettings<int>(json_settings, "HRU_Actor", "output_frequency")
-          .value_or(OUTPUT_FREQUENCY),
-      getSettings<double>(json_settings, "HRU_Actor", "abs_tol").value_or(1e-3),
-      getSettings<double>(json_settings, "HRU_Actor", "rel_tol")
-          .value_or(1e-3));
+    getSettings<bool>(json_settings, "HRU_Actor", "print_output")
+        .value_or(true),
+    getSettings<int>(json_settings, "HRU_Actor", "output_frequency")
+        .value_or(OUTPUT_FREQUENCY),
+    getSettings<int>(json_settings, "HRU_Actor", "be_steps")
+        .value_or(MISSING_INT),
+    getSettings<double>(json_settings, "HRU_Actor", "rel_tol")
+        .value_or(1e-3),
+    getSettings<double>(json_settings, "HRU_Actor", "rel_tol_temp_cas")
+        .value_or(1e-3),
+    getSettings<double>(json_settings, "HRU_Actor", "rel_tol_temp_veg")
+        .value_or(1e-3),
+    getSettings<double>(json_settings, "HRU_Actor", "rel_tol_wat_veg")
+        .value_or(1e-3),
+    getSettings<double>(json_settings, "HRU_Actor", "rel_tol_temp_soil_snow")
+        .value_or(1e-3),
+    getSettings<double>(json_settings, "HRU_Actor", "rel_tol_wat_snow")
+        .value_or(1e-3),
+    getSettings<double>(json_settings, "HRU_Actor", "rel_tol_matric")
+        .value_or(1e-3),
+    getSettings<double>(json_settings, "HRU_Actor", "rel_tol_aquifr")
+        .value_or(1e-3),
+    getSettings<double>(json_settings, "HRU_Actor", "abs_tol")
+        .value_or(1e-3),
+    getSettings<double>(json_settings, "HRU_Actor", "abs_tolWat")
+        .value_or(MISSING_DOUBLE),
+    getSettings<double>(json_settings, "HRU_Actor", "abs_tolNrg")
+        .value_or(MISSING_DOUBLE),
+    getSettings<double>(json_settings, "HRU_Actor", "abs_tol_temp_cas")
+        .value_or(1e-3),
+    getSettings<double>(json_settings, "HRU_Actor", "abs_tol_temp_veg")
+        .value_or(1e-3),
+    getSettings<double>(json_settings, "HRU_Actor", "abs_tol_wat_veg")
+        .value_or(1e-3),
+    getSettings<double>(json_settings, "HRU_Actor", "abs_tol_temp_soil_snow")
+        .value_or(1e-3),
+    getSettings<double>(json_settings, "HRU_Actor", "abs_tol_wat_snow")
+        .value_or(1e-3),
+    getSettings<double>(json_settings, "HRU_Actor", "abs_tol_matric")
+        .value_or(1e-3),
+    getSettings<double>(json_settings, "HRU_Actor", "abs_tol_aquifr")
+        .value_or(1e-3),
+    getSettings<bool>(json_settings, "HRU_Actor", "default_tol")
+        .value_or(true));
+
+    f_set_default_tol(hru_actor_settings_.default_tol_);
 
   return SUCCESS;
 }

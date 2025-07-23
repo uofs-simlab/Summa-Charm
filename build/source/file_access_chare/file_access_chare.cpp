@@ -77,6 +77,7 @@ void FileAccessChare::accessForcing(int i_file, CkChareID gru_chare)
     return;
   }
 
+
   // Load files behind the scenes
   accessForcingInternal(i_file + 1);
   CProxy_GruChare(gru_chare).newForcingFile(forcing_files_->getNumSteps(i_file), i_file);
@@ -205,7 +206,7 @@ std::tuple<double, double> FileAccessChare::finalize()
            forcing_files_->getReadDuration(),
            timing_info_.getDuration("write_duration").value_or(-1.0));
 
-  output_buffer_.reset();
+  // output_buffer_.reset();
 
   return std::make_tuple(forcing_files_->getReadDuration(),
                          timing_info_.getDuration("write_duration")
