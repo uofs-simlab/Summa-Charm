@@ -2,8 +2,8 @@ import xarray as xr
 import numpy as np
 
 # Load NetCDF files
-file1 = "/u1/pma753/SummaChare/test/output/bench/SummaOriginal__G000001-000300_timestep.nc"
-file2 = "/u1/pma753/SummaChare/test/output/test/SummaOriginal__G000001-000300_timestep.nc"
+file1 = "/u1/pma753/SummaChare/test/output/bench/SummaOriginal__G000011-000020_timestep.nc"
+file2 = "/u1/pma753/SummaChare/test/output/test/SummaOriginal__G000011-000020_timestep.nc"
 
 ds1 = xr.open_dataset(file1)
 ds2 = xr.open_dataset(file2)

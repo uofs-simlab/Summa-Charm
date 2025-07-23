@@ -1,6 +1,6 @@
 {
   "Summa_Actor": {
-    "max_gru_per_job": 1000,
+    "max_gru_per_job": 10,
     "enable_logging": false,
     "log_dir": ""
   },

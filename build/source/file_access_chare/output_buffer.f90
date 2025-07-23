@@ -341,6 +341,9 @@ subroutine f_allocateOutputBuffer(max_steps, num_gru, err, message_r) &
   ! ****************************************************************************
   ! *** Initialize output structure
   ! ****************************************************************************
+  if (allocated(summa_struct)) then
+    deallocate(summa_struct)
+  endif
   allocate(summa_struct(1))
   ! Statistics Structures
   allocate(summa_struct(1)%forcStat%gru(num_gru))
