@@ -324,9 +324,7 @@ subroutine f_allocateOutputBuffer(max_steps, num_gru, err, message_r) &
 
   err=0; message="f_allocateOutputBuffer/"
   call f_c_string_ptr(trim(message), message_r)
-  if (allocated(outputTimeStep)) then
-    deallocate(outputTimeStep)
-  endif
+
 
   ! ****************************************************************************
   ! *** Initialize output time step
@@ -344,9 +342,7 @@ subroutine f_allocateOutputBuffer(max_steps, num_gru, err, message_r) &
   ! ****************************************************************************
   ! *** Initialize output structure
   ! ****************************************************************************
-  if (allocated(summa_struct)) then
-    deallocate(summa_struct)
-  endif
+
   allocate(summa_struct(1))
   ! Statistics Structures
   allocate(summa_struct(1)%forcStat%gru(num_gru))
@@ -403,13 +399,8 @@ subroutine f_deallocateOutputBuffer(handle_ncid) &
     end if
   end do
 
-  if (allocated(summa_struct)) then
-    deallocate(summa_struct)
-  endif
-
-  if (allocated(outputTimeStep)) then
-    deallocate(outputTimeStep)
-  endif
+  deallocate(summa_struct)
+  deallocate(outputTimeStep)
 end subroutine
 
 
