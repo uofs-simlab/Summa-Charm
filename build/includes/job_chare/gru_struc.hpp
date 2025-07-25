@@ -35,7 +35,7 @@ class GRU
 private:
   int index_netcdf_;    // The index of the GRU in the netcdf file
   int index_job_;       // The index of the GRU within this job
-  CkChareID actor_ref_; // The actor for the GRU
+  CkChareID chare_ref_; // The chare for the GRU
 
   int num_hrus_; // The number of HRUs in the GRU
 
@@ -73,7 +73,7 @@ private:
 
 public:
   // Constructor
-  GRU(int index_netcdf, int index_job, CkChareID actor_ref,
+  GRU(int index_netcdf, int index_job, CkChareID chare_ref,
       int dt_init_factor, int be_steps,
       // Relative Tolerances
       double rel_tol, double rel_tol_temp_cas = 0.0,
@@ -87,7 +87,7 @@ public:
       double abs_tol_wat_snow = 0.0, double abs_tol_matric = 0.0,
       double abs_tol_aquifr = 0.0,
       bool /*def_tol*/ = true, int max_attempts = 5)
-      : index_netcdf_(index_netcdf), index_job_(index_job), actor_ref_(actor_ref),
+      : index_netcdf_(index_netcdf), index_job_(index_job), chare_ref_(chare_ref),
         dt_init_factor_(dt_init_factor), be_steps_(be_steps),
         // Relative Tolerances
         rel_tol_(rel_tol), rel_tol_temp_cas_(rel_tol_temp_cas),
@@ -112,7 +112,7 @@ public:
   // Getters
   inline int getIndexNetcdf() const { return index_netcdf_; }
   inline int getIndexJob() const { return index_job_; }
-  inline CkChareID  getActorRef() const { return actor_ref_; }
+  inline CkChareID  getChareRef() const { return chare_ref_; }
   inline double getRunTime() const { return run_time_; }
 
   inline int getBeSteps() const { return be_steps_; }
@@ -198,7 +198,7 @@ public:
   // Methods
   inline bool isFailed() const { return state_ == gru_state::failed; }
   inline void decrementAttemptsLeft() { attempts_left_--; }
-  inline void setActorRef(CkChareID  gru_actor) { actor_ref_ = gru_actor; }
+  inline void setChareRef(CkChareID  gru_chare) { chare_ref_ = gru_chare; }
 };
 
 // Structure for node GRU information

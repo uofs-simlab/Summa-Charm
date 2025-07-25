@@ -10,7 +10,7 @@ using chrono_time = std::chrono::time_point<std::chrono::high_resolution_clock>;
 int OutputBuffer::getNumStepsBuffer(int gru_index) {
   int partition_index = findPartitionIndex(gru_index);
   if (partition_index == -1) {
-    std::cout << "Error: FileAccessActor -- addFailedGRU: "
+    std::cout << "Error: FileAccessChare -- addFailedGRU: "
               << "Could not find partition for GRU: " << gru_index << "\n";
     return -1;
   }
@@ -19,7 +19,7 @@ int OutputBuffer::getNumStepsBuffer(int gru_index) {
   return partitions_[partition_index]->getNumStepsBuffer();
 } 
 
-int OutputBuffer::defOutput(const std::string& actor_address) {
+int OutputBuffer::defOutput(const std::string& chare_address) {
   int err = 0;
   std::unique_ptr<char[]> message(new char[256]);
 
@@ -29,7 +29,7 @@ int OutputBuffer::defOutput(const std::string& actor_address) {
 
   std::string output_extention = "";
   if (num_gru_info_.use_global_for_data_structures) {
-    output_extention = actor_address;
+    output_extention = chare_address;
   }
 
   if (fa_settings_.output_file_suffix_ != "") {
@@ -41,7 +41,7 @@ int OutputBuffer::defOutput(const std::string& actor_address) {
               num_gru_info_.use_global_for_data_structures, 
               output_extention.c_str(), err, &message);
   if (err != 0) {
-    std::cout << "Error: File Access Actor -- f_defOutput: " 
+    std::cout << "Error: File Access Chare -- f_defOutput: " 
               << message.get() << "\n";
   }
   
@@ -69,7 +69,7 @@ int OutputBuffer::allocateOutputBuffer(int num_timesteps) {
   f_allocateOutputBuffer(fa_settings_.num_timesteps_in_output_buffer_,
                          num_gru, err, &message);
   if (err != 0) {
-    std::cout << "Error: FileAccessActor -- f_allocateOutputBuffer: " 
+    std::cout << "Error: FileAccessChare -- f_allocateOutputBuffer: " 
               << message.get() << "\n";
   }
   return err;
@@ -83,7 +83,7 @@ const int OutputBuffer::writeOutputDA(const int output_step) {
   f_writeOutputDA(handle_ncid_.get(), output_step, start_gru, end_gru, 
                   write_params_da_, err, &message);
   if (err != 0) {
-    std::cout << "Error: FileAccessActor -- f_writeOutputDA: " 
+    std::cout << "Error: FileAccessChare -- f_writeOutputDA: " 
               << message.get() << "\n";
   }
 
@@ -96,7 +96,7 @@ const std::optional<WriteOutputReturn*> OutputBuffer::writeOutput(
     int index_gru, CkChareID gru) {
   int partition_index = findPartitionIndex(index_gru);
   if (partition_index == -1) {
-    std::cout << "Error: FileAccessActor -- addFailedGRU: "
+    std::cout << "Error: FileAccessChare -- addFailedGRU: "
               << "Could not find partition for GRU: " << index_gru << "\n";
     return {};
   }
@@ -112,7 +112,7 @@ const std::optional<WriteOutputReturn*> OutputBuffer::addFailedGRU(int index) {
 
   int partition_index = findPartitionIndex(index);
   if (partition_index == -1) {
-    std::cout << "Error: FileAccessActor -- addFailedGRU: "
+    std::cout << "Error: FileAccessChare -- addFailedGRU: "
               << "Could not find partition for GRU: " << index << "\n";
     return {};
   }
@@ -173,7 +173,7 @@ const std::optional<WriteOutputReturn*> OutputPartition::writeOutput(
 
     write_status_.err = err;
     write_status_.message = message.get();
-    write_status_.actor_to_update = ready_to_write_;
+    write_status_.chare_to_update = ready_to_write_;
     write_status_.num_steps_update = num_steps_buffer_;
 
     // Reset the partition for the next set of writes
@@ -203,7 +203,7 @@ const std::optional<WriteOutputReturn*> OutputPartition::writeOutput(
 
     write_status_.err = err;
     write_status_.message = message.get();
-    write_status_.actor_to_update = ready_to_write_;
+    write_status_.chare_to_update = ready_to_write_;
     write_status_.num_steps_update = num_steps_buffer_;
 
     // Reset the partition for the next set of writes

@@ -14,7 +14,7 @@ class Batch {
     double run_time_;
     double read_time_;
     double write_time_;
-    bool assigned_to_actor_;
+    bool assigned_to_chare_;
     bool solved_;
 
     std::string log_dir_; // Directory to write log files
@@ -46,7 +46,7 @@ class Batch {
     std::string toString();
 
     // specific method - commented out for Charm++ version
-    void assignToActor(std::string hostname, CkChareID assigned_actor);
+    void assignToChare(std::string hostname, CkChareID assigned_chare);
 
     // PUP method for Charm++ serialization
     template <typename PUPER>
@@ -57,7 +57,7 @@ class Batch {
         p | run_time_;
         p | read_time_;
         p | write_time_;
-        p | assigned_to_actor_;
+        p | assigned_to_chare_;
         p | solved_;
         p | log_dir_;
     }

@@ -11,7 +11,7 @@ USE data_types,only:&
                     var_dlength,    &
                     flagVec
 
-USE actor_data_types,only:hru_type
+USE chare_data_types,only:hru_type
 implicit none
 public::setTimeZoneOffset
 public::readHRUForcing
@@ -42,7 +42,7 @@ subroutine setTimeZoneOffset(iFile, hru_data, err, message)
   integer(i4b)                          :: ih_tz,imin_tz      ! time zone information
   real(dp)                              :: dsec,dsec_tz       ! seconds
 
-  err=0; message="hru_actor.f90 - setForcingTimeInfo";
+  err=0; message="hru_chare.f90 - setForcingTimeInfo";
 
   ! define the reference time for the model simulation
   call extractTime(forcingDataStruct(iFile)%refTimeString, & ! input  = units string for time data
@@ -111,7 +111,7 @@ subroutine readHRUForcing(indx_gru, indx_hru, iStep, iRead, iFile, &
   character(len = nf90_max_name)          :: varName          ! dimenison name
   character(len=256)                      :: cmessage         ! error message
 
-  err=0;message="hru_actor.f90 - readForcingHRU";
+  err=0;message="hru_chare.f90 - readForcingHRU";
 
   ! Get index into the forcing structure
   iHRU_global = gru_struc(indx_gru)%hruInfo(indx_hru)%hru_nc
@@ -255,7 +255,7 @@ subroutine getFirstTimestep(iFile, iRead, err)
   real(dp),dimension(forcingDataStruct(iFile)%nTimeSteps) :: fileTime      ! array of time from netcdf file
   real(dp),dimension(forcingDataStruct(iFile)%nTimeSteps) :: diffTime      ! array of time differences
 
-  err=0; message="hru_actor.f90 - getFirstTimeStep"
+  err=0; message="hru_chare.f90 - getFirstTimeStep"
 
   ! get time vector & convert units based on offset and data step
   timeVal(1) = vecTime(iFile)%dat(1)

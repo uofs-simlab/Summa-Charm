@@ -17,8 +17,8 @@ module hru_interface
 subroutine initHRU_fortran(indx_gru, indx_hru, num_steps, handle_hru_data, &
     err, message_r) bind(C, name="initHRU_fortran")
   USE globalData,only:numtim
-  USE actor_data_types,only:hru_type             
-  USE INIT_HRU_ACTOR,only:initHRU
+  USE chare_data_types,only:hru_type             
+  USE INIT_HRU_CHARE,only:initHRU
   USE C_interface_module,only:f_c_string_ptr  ! convert fortran string to c string
   implicit none
   ! Dummy Variables
@@ -42,8 +42,8 @@ end subroutine initHRU_fortran
 
 subroutine setupHRU_fortran(indx_gru, indx_hru, handle_hru_data, err, message_r) & 
     bind(C, name="setupHRU_fortran")
-  USE actor_data_types,only:hru_type
-  USE INIT_HRU_ACTOR,only:setupHRU
+  USE chare_data_types,only:hru_type
+  USE INIT_HRU_CHARE,only:setupHRU
   USE C_interface_module,only:f_c_string_ptr  ! convert fortran string to c string
   ! Dummy Variables
   integer(c_int), intent(in)       :: indx_gru
@@ -64,8 +64,8 @@ end subroutine setupHRU_fortran
 
 subroutine readHRURestart_fortran(indx_gru, indx_hru, handle_hru_data, &
     err, message_r) bind(C, name="readHRURestart_fortran")
-  USE actor_data_types,only:hru_type
-  USE INIT_HRU_ACTOR,only:readHRURestart
+  USE chare_data_types,only:hru_type
+  USE INIT_HRU_CHARE,only:readHRURestart
   USE C_interface_module,only:f_c_string_ptr  ! convert fortran string to c string
   ! Dummy Variables
   integer(c_int), intent(in)       :: indx_gru
@@ -86,7 +86,7 @@ end subroutine readHRURestart_fortran
 
 subroutine setTimeZoneOffset_fortran(iFile, handle_hru_data, err, message_r) &
     bind(C, name="setTimeZoneOffset_fortran")
-  USE actor_data_types,only:hru_type
+  USE chare_data_types,only:hru_type
   USE hru_read,only:setTimeZoneOffset
   USE C_interface_module,only:f_c_string_ptr  ! convert fortran string to c string
   ! Dummy Variables
@@ -107,7 +107,7 @@ end subroutine setTimeZoneOffset_fortran
 
 subroutine readHRUForcing_fortran(indx_gru, indx_hru, iStep, iRead, iFile, &
     handle_hru_data, err, message_r) bind(C, name="readHRUForcing_fortran")
-  USE actor_data_types,only:hru_type
+  USE chare_data_types,only:hru_type
   USE hru_read,only:readHRUForcing
   USE C_interface_module,only:f_c_string_ptr  ! convert fortran string to c string
   ! Dummy Variables
@@ -133,7 +133,7 @@ end subroutine readHRUForcing_fortran
 
 subroutine runHRU_fortran(indx_gru, indx_hru, modelTimeStep, handle_hru_data, &
     dt_init_factor, wallTimeTimeStep, err, message_r) bind(C, name="runHRU_fortran")
-  USE actor_data_types,only:hru_type
+  USE chare_data_types,only:hru_type
   USE summa_modelRun,only:runPhysics
   USE C_interface_module,only:f_c_string_ptr  ! convert fortran string to c string
   USE globalData,only:model_decisions          ! model decision structure
@@ -252,7 +252,7 @@ end subroutine runHRU_fortran
 
 subroutine writeHRUOutput_fortran(indx_gru, indx_hru, timestep, outputstep, &
     handle_hru_data, y, m, d, h, err, message_r) bind(C, name="writeHRUOutput_fortran")
-  USE actor_data_types,only:hru_type
+  USE chare_data_types,only:hru_type
   USE HRUwriteoOutput_module,only:writeHRUOutput
   USE var_lookup,only:iLookTIME                 ! named variables for time data structure
   USE C_interface_module,only:f_c_string_ptr  ! convert fortran string to c string
@@ -275,7 +275,7 @@ subroutine writeHRUOutput_fortran(indx_gru, indx_hru, timestep, outputstep, &
   call f_c_string_ptr(trim(message), message_r)
   call c_f_pointer(handle_hru_data, hru_data)
 
-  ! updating date variables to be passed back to the actors
+  ! updating date variables to be passed back to the chares
   y = hru_data%timeStruct%var(iLookTIME%iyyy)
   m = hru_data%timeStruct%var(iLookTIME%im)
   d = hru_data%timeStruct%var(iLookTIME%id)

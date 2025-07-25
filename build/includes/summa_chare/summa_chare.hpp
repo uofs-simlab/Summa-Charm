@@ -6,10 +6,10 @@
 #include <memory>
 #include "timing_info.hpp"
 #include "distributed_settings.hpp"
-#include "summa_actor_settings.hpp"
-#include "file_access_actor_settings.hpp"
-#include "job_actor_settings.hpp"
-#include "hru_actor_settings.hpp"
+#include "summa_chare_settings.hpp"
+#include "file_access_chare_settings.hpp"
+#include "job_chare_settings.hpp"
+#include "hru_chare_settings.hpp"
 #include "file_manager.hpp"
 #include "batch_container.hpp"
 #include "summa_global_data.hpp"
@@ -53,10 +53,10 @@ public:
 
 private:
   DistributedSettings distributed_settings_;
-  SummaActorSettings summa_actor_settings_;
-  FileAccessActorSettings fa_actor_settings_;
-  JobActorSettings job_actor_settings_;
-  HRUActorSettings hru_actor_settings_;
+  SummaChareSettings summa_chare_settings_;
+  FileAccessChareSettings fa_chare_settings_;
+  JobChareSettings job_chare_settings_;
+  HRUChareSettings hru_chare_settings_;
   TimingInfo timing_info_;
   int start_gru_;
   int num_gru_;

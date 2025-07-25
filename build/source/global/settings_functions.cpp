@@ -3,22 +3,22 @@
 void Settings::generateConfigFile() {
     using json = nlohmann::ordered_json;
     json config_file; 
-    config_file["Summa_Actor"] = {
+    config_file["Summa_Chare"] = {
         {"max_gru_per_job", GRU_PER_JOB},
         {"enable_logging", false},
         {"log_dir", ""}
     };
-    config_file["File_Access_Actor"] = {
+    config_file["File_Access_Chare"] = {
         {"num_partitions_in_output_buffer", NUM_PARTITIONS},
         {"num_timesteps_in_output_buffer", OUTPUT_TIMESTEPS}
     };
-    config_file["Job_Actor"] = {
+    config_file["Job_Chare"] = {
         {"file_manager_path", "/home/username/summa_file_manager"},
         {"max_run_attempts", 1},
         {"data_assimilation_mode", false},
         {"batch_size", MISSING_INT}
     };
-    config_file["HRU_Actor"] = {
+    config_file["HRU_Chare"] = {
         {"print_output", true},
         {"output_frequency", OUTPUT_FREQUENCY},
         {"abs_tol", 1e1},

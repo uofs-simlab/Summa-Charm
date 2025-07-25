@@ -1,4 +1,4 @@
-module gru_actor
+module gru_chare
 USE,intrinsic :: iso_c_binding
 USE nrtype
 USE globalData,only:integerMissing
@@ -42,7 +42,7 @@ subroutine f_setGruTolerances(handle_gru_data, be_steps, &
   abs_tol_aquifr)  bind(C, name="f_setGruTolerances")
 
   USE global_tol
-  USE actor_data_types,only:gru_type
+  USE chare_data_types,only:gru_type
   USE var_lookup,only: iLookPARAM
 
   implicit none
@@ -369,12 +369,12 @@ end subroutine setupGRU
 
 subroutine f_initGru(indx_gru, handle_gru_data, output_buffer_steps, &
     err, message_r) bind(C, name="f_initGru")
-  USE actor_data_types,only:gru_type             
+  USE chare_data_types,only:gru_type             
   USE data_types,only:var_dlength
   USE globalData,only:statBvar_meta                           ! child metadata for stats
   USE globalData,only:bvar_meta                     ! metadata structures
   USE allocspace_module,only:allocLocal
-  USE INIT_HRU_ACTOR,only:initHRU
+  USE INIT_HRU_CHARE,only:initHRU
   USE C_interface_module,only:f_c_string_ptr  ! convert fortran string to c string
   implicit none
   ! Dummy variables
@@ -426,8 +426,8 @@ end subroutine f_initGru
 subroutine setupGRU_fortran(indx_gru, handle_gru_data, err, message_r) & 
     bind(C, name="setupGRU_fortran")
   USE summa_init_struc,only:init_struc
-  USE actor_data_types,only:gru_type
-  USE INIT_HRU_ACTOR,only:setupHRU
+  USE chare_data_types,only:gru_type
+  USE INIT_HRU_CHARE,only:setupHRU
   USE C_interface_module,only:f_c_string_ptr  ! convert fortran string to c string
   ! Dummy Variables
   integer(c_int), intent(in)       :: indx_gru
@@ -455,9 +455,9 @@ end subroutine setupGRU_fortran
 
 subroutine readGRURestart_fortran(indx_gru, handle_gru_data, err, message_r) &
     bind(C, name="readGRURestart_fortran")
-  USE actor_data_types,only:gru_type
+  USE chare_data_types,only:gru_type
   USE C_interface_module,only:f_c_string_ptr  ! convert fortran string to c string
-  USE INIT_HRU_ACTOR,only:readHRURestart
+  USE INIT_HRU_CHARE,only:readHRURestart
 
   USE var_lookup,only:iLookDECISIONS                          ! look-up values for model decisions
   USE var_lookup,only:iLookBVAR                               ! look-up values for basin-average model variables
@@ -500,7 +500,7 @@ end subroutine readGRURestart_fortran
 
 subroutine setTimeZoneOffsetGRU_fortran(iFile, handle_gru_data, err, message_r) & 
     bind(C, name="setTimeZoneOffsetGRU_fortran")
-  USE actor_data_types,only:gru_type
+  USE chare_data_types,only:gru_type
   USE C_interface_module,only:f_c_string_ptr  ! convert fortran string to c string
   USE hru_read,only:setTimeZoneOffset
   implicit none
@@ -526,7 +526,7 @@ end subroutine setTimeZoneOffsetGRU_fortran
 
 subroutine readGRUForcing_fortran(indx_gru, iStep, iRead, iFile, & 
     handle_gru_data, err, message_r) bind(C, name="readGRUForcing_fortran")
-  USE actor_data_types,only:gru_type
+  USE chare_data_types,only:gru_type
   USE C_interface_module,only:f_c_string_ptr  ! convert fortran string to c string
   USE hru_read,only:readHRUForcing
   implicit none
@@ -556,7 +556,7 @@ end subroutine readGRUForcing_fortran
 
 subroutine runGRU_fortran(indx_gru, modelTimeStep, handle_gru_data, &
     dt_init_factor, err, message_r) bind(C, name="runGRU_fortran")
-  USE actor_data_types,only:gru_type
+  USE chare_data_types,only:gru_type
   USE C_interface_module,only:f_c_string_ptr  ! convert fortran string to c string
   USE summa_modelRun,only:runPhysics
   
@@ -737,7 +737,7 @@ end subroutine runGRU_fortran
 
 subroutine writeGRUOutput_fortran(indx_gru, timestep, outputstep, &
     handle_gru_data, err, message_r) bind(C, name="writeGRUOutput_fortran")
-  USE actor_data_types,only:gru_type
+  USE chare_data_types,only:gru_type
   USE HRUwriteoOutput_module,only:writeHRUOutput
   USE C_interface_module,only:f_c_string_ptr  ! convert fortran string to c string
   implicit none
@@ -908,7 +908,7 @@ end subroutine allocateOutputBuffer
 
 subroutine alloc_outputStruc(metaStruct,dataStruct,nSteps,nSnow,nSoil,str_name,err,message)
   USE data_types
-  USE actor_data_types
+  USE chare_data_types
   USE var_lookup,only:iLookINDEX
   USE var_lookup,only:maxvarFreq             ! allocation dimension (output frequency)
   implicit none
@@ -1095,7 +1095,7 @@ end function is_var_desired
 subroutine allocateDat_rkind_nSteps(metadata,varData,nSnow, nSoil, &
   nSteps,iVar,err,message)
   USE data_types
-  USE actor_data_types
+  USE chare_data_types
   USE var_lookup,only:iLookVarType           ! look up structure for variable typed
 
   USE globalData,only:nTimeDelay            ! number of timesteps in the time delay histogram
@@ -1117,7 +1117,7 @@ subroutine allocateDat_rkind_nSteps(metadata,varData,nSnow, nSoil, &
   ! local variables
   integer(i4b)                         :: iStep 
   integer(i4b)                         :: nLayers
-  message='allocateDat_rkindAccessActor'
+  message='allocateDat_rkindAccessChare'
 
   nLayers = nSnow+nSoil
   do iStep=1, nSteps
@@ -1163,7 +1163,7 @@ subroutine allocateDat_rkind(metadata,varData,nSnow,nSoil,err,message)
   integer(i4b)                      :: nVars
   integer(i4b)                      :: iVar
   integer(i4b)                      :: nLayers
-  message='allocateDat_rkindAccessActor'
+  message='allocateDat_rkindAccessChare'
 
   nVars = size(metaData)
   nLayers = nSnow+nSoil
@@ -1193,7 +1193,7 @@ subroutine allocateDat_int(metadata,varData,nSnow, nSoil, &
                            nSteps,iVar,err,message)
   USE get_ixName_module,only:get_varTypeName       ! to access type strings for error messages
   USE data_types
-  USE actor_data_types
+  USE chare_data_types
   USE var_lookup,only:iLookVarType           ! look up structure for variable typed
   USE var_lookup,only:maxvarFreq             ! allocation dimension (output frequency)
   USE globalData,only:nSpecBand                 ! number of spectral bands
@@ -1211,7 +1211,7 @@ subroutine allocateDat_int(metadata,varData,nSnow, nSoil, &
   ! local variables
   integer(i4b)                         :: iStep 
   integer(i4b)                         :: nLayers
-  message='allocateDat_rkindAccessActor'
+  message='allocateDat_rkindAccessChare'
 
   nLayers = nSnow+nSoil
   do iStep=1, nSteps
@@ -1236,4 +1236,4 @@ subroutine allocateDat_int(metadata,varData,nSnow, nSoil, &
 end subroutine allocateDat_int
 
 
-end module gru_actor
+end module gru_chare

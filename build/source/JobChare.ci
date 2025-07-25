@@ -2,13 +2,13 @@ module JobChare {
   extern module FileAccessChare;
   extern module GruChare;
   include "batch.hpp";
-  include "job_actor_settings.hpp";
-  include "file_access_actor_settings.hpp";
-  include "hru_actor_settings.hpp";
+  include "job_chare_settings.hpp";
+  include "file_access_chare_settings.hpp";
+  include "hru_chare_settings.hpp";
   
   chare JobChare {
-    entry JobChare(Batch batch, bool enable_logging, JobActorSettings job_actor_settings,
-                   FileAccessActorSettings fa_actor_settings, HRUActorSettings hru_actor_settings,
+    entry JobChare(Batch batch, bool enable_logging, JobChareSettings job_chare_settings,
+                   FileAccessChareSettings fa_chare_settings, HRUChareSettings hru_chare_settings,
                    CkChareID summa_chare_proxy);
     entry void handleGruChareError(int job_index, int timestep, int err_code, std::string err_msg);
     entry void handleFinishedGRU(int job_index);

@@ -1,10 +1,10 @@
 module GruChare {
   extern module FileAccessChare;
   extern module JobChare;
-  include "hru_actor_settings.hpp";
+  include "hru_chare_settings.hpp";
   
   chare GruChare {
-    entry GruChare(int netcdf_index, int job_index, int num_steps, HRUActorSettings hru_actor_settings, int num_output_steps, CkChareID file_access_actor, CkChareID parent);
+    entry GruChare(int netcdf_index, int job_index, int num_steps, HRUChareSettings hru_chare_settings, int num_output_steps, CkChareID file_access_chare, CkChareID parent);
     entry void newForcingFile(int num_forc_steps, int iFile);
     entry void setNumStepsBeforeWrite(int num_steps);
     entry void runHRU();

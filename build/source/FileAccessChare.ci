@@ -1,9 +1,9 @@
 module FileAccessChare {
   include "num_gru_info.hpp";
-  include "file_access_actor_settings.hpp";
+  include "file_access_chare_settings.hpp";
   
   chare FileAccessChare {
-    entry FileAccessChare(NumGRUInfo num_gru_info, FileAccessActorSettings fa_settings, CkChareID job_chare_proxy);
+    entry FileAccessChare(NumGRUInfo num_gru_info, FileAccessChareSettings fa_settings, CkChareID job_chare_proxy);
     entry [sync] int initFileAccessChare(const int file_gru, int num_hru);
     entry [sync] int getNumOutputSteps(int job_index);
     entry void accessForcing(int iFile, CkChareID gru_chare);

@@ -10,9 +10,9 @@
 CProxy_Main mainProxy;
 
 const std::string command_line_help =
-    "Summa-Actors is in active development and some features may not be "
+    "Summa-Chares is in active development and some features may not be "
     "available.\n"
-    "Usage: summa_actors -m master_file [-g startGRU countGRU] [-c "
+    "Usage: summa_chares -m master_file [-g startGRU countGRU] [-c "
     "config_file]\n"
     "Available options: \n"
     "\t-m, --master:         Define path/name of master file (can be specified "
@@ -21,7 +21,7 @@ const std::string command_line_help =
     "\t-g, --gru:            Run a subset of countGRU GRUs starting from index "
     "startGRU "
     "\n"
-    "\t-c, --config:         Path name of the Summa-Actors config file "
+    "\t-c, --config:         Path name of the Summa-Chares config file "
     "(optional but "
     "recommended)\n"
     "\t-s  --suffix          Add fileSuffix to the output files\n"
@@ -76,7 +76,7 @@ public:
       }
     }
 
-    CkPrintf("Starting SUMMA-Actors");
+    CkPrintf("Starting SUMMA-Chares");
 
     Settings settings = Settings(config_file);
     if (generate_config) {

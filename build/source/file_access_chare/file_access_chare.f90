@@ -1,4 +1,4 @@
-module file_access_actor
+module file_access_chare
   USE, intrinsic :: iso_c_binding
   implicit none
   public::f_getNumTimeSteps
@@ -10,4 +10,4 @@ subroutine f_getNumTimeSteps(num_timesteps) bind(C, name="f_getNumTimeSteps")
   num_timesteps = numtim
 end subroutine f_getNumTimeSteps
 
-end module file_access_actor
+end module file_access_chare

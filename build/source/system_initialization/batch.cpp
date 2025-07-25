@@ -7,7 +7,7 @@ Batch::Batch(int batch_id, int start_hru, int num_hru){
   run_time_ = 0.0;
   read_time_ = 0.0;
   write_time_ = 0.0;
-  assigned_to_actor_ = false;
+  assigned_to_chare_ = false;
   solved_ = false;
 }
 
@@ -15,7 +15,7 @@ Batch::Batch(int batch_id, int start_hru, int num_hru){
 double Batch::getRunTime() { return run_time_; }
 double Batch::getReadTime() { return read_time_; }
 double Batch::getWriteTime() { return write_time_; }
-bool Batch::isAssigned() { return assigned_to_actor_; }
+bool Batch::isAssigned() { return assigned_to_chare_; }
 bool Batch::isSolved() { return solved_; }
 
 std::string Batch::getBatchInfoString() {
@@ -29,7 +29,7 @@ std::string Batch::getBatchInfoString() {
 void Batch::updateRunTime(double run_time) { run_time_ = run_time; }
 void Batch::updateReadTime(double read_time) { read_time_ = read_time; }
 void Batch::updateWriteTime(double write_time) { write_time_ = write_time; }
-void Batch::updateAssigned(bool boolean) { assigned_to_actor_ = boolean; }
+void Batch::updateAssigned(bool boolean) { assigned_to_chare_ = boolean; }
 void Batch::updateSolved(bool boolean) { solved_ = boolean; }
 
 void Batch::printBatchInfo() {
@@ -47,7 +47,7 @@ std::string Batch::toString() {
                 "run_time: " << run_time_ << "\n" << 
                 "read_time: " << read_time_ << "\n" <<
                 "write_time: " << write_time_ << "\n" <<
-                // "assigned_to_actor: " << assigned_to_actor_ << "\n" <<
+                // "assigned_to_chare: " << assigned_to_chare_ << "\n" <<
                 "solved: " << solved_ << "\n";
 
   return out_string.str();

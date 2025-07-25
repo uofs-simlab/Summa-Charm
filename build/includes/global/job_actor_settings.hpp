@@ -20,7 +20,7 @@
 
 using json = nlohmann::json;
 
-class JobActorSettings
+class JobChareSettings
 {
 public:
   std::string file_manager_path_;
@@ -28,7 +28,7 @@ public:
   bool data_assimilation_mode_;
   int batch_size_;
 
-  JobActorSettings(std::string file_manager_path = "",
+  JobChareSettings(std::string file_manager_path = "",
                    int max_run_attempts = 1,
                    bool data_assimilation_mode = false,
                    int batch_size = 10)
@@ -37,11 +37,11 @@ public:
         data_assimilation_mode_(data_assimilation_mode),
         batch_size_(batch_size) {};
 
-  ~JobActorSettings() {};
+  ~JobChareSettings() {};
 
   std::string toString()
   {
-    std::string str = "Job Actor Settings:\n";
+    std::string str = "Job Chare Settings:\n";
     str += "File Manager Path: " + file_manager_path_ + "\n";
     str += "Max Run Attempts: " + std::to_string(max_run_attempts_) + "\n";
     str += "Data Assimilation Mode: " + std::to_string(data_assimilation_mode_) + "\n";

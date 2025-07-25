@@ -3,9 +3,9 @@
 #include "GruChare.decl.h"
 #include "FileAccessChare.decl.h"
 #include "JobChare.decl.h"
-#include "hru_actor_settings.hpp"
+#include "hru_chare_settings.hpp"
 #include "fortran_data_types.hpp"
-// #include "hru_actor.hpp"
+// #include "hru_chare.hpp"
 #include <vector>
 #include <memory>
 
@@ -51,9 +51,9 @@ class GruChare : public CBase_GruChare
 {
     int netcdf_index_;
     int job_index_;
-    HRUActorSettings hru_actor_settings_;
+    HRUChareSettings hru_chare_settings_;
     int num_steps_output_buffer_;
-    CkChareID file_access_actor_;
+    CkChareID file_access_chare_;
     CkChareID parent_;
 
     int num_hrus_;
@@ -73,8 +73,8 @@ class GruChare : public CBase_GruChare
 
 public:
     GruChare(int netcdf_index, int job_index,
-             int num_steps, HRUActorSettings hru_actor_settings,
-             int num_output_steps, CkChareID file_access_actor, CkChareID parent);
+             int num_steps, HRUChareSettings hru_chare_settings,
+             int num_output_steps, CkChareID file_access_chare, CkChareID parent);
     ~GruChare() {}
 
     void newForcingFile(int num_forc_steps, int iFile);

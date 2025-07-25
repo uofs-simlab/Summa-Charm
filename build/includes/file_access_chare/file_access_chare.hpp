@@ -11,7 +11,7 @@
 #include <vector>
 #include "num_gru_info.hpp" // Include the global NumGRUInfo definition
 #include "output_buffer.hpp"
-#include "file_access_actor_settings.hpp"
+#include "file_access_chare_settings.hpp"
 #include "fortran_data_types.hpp"
 #include "auxilary.hpp"
 #include "forcing_file_info.hpp"
@@ -20,7 +20,7 @@
 // Forward declarations
 class OutputBuffer;
 class TimingInfo;
-class FileAccessActorSettings;
+class FileAccessChareSettings;
 // Fortran interface functions
 extern "C"
 {
@@ -36,7 +36,7 @@ class FileAccessChare : public CBase_FileAccessChare
 private:
   TimingInfo timing_info_;
   NumGRUInfo num_gru_info_;
-  FileAccessActorSettings fa_settings_;
+  FileAccessChareSettings fa_settings_;
   CkChareID job_chare_proxy_;
 
   int start_gru_;
@@ -54,7 +54,7 @@ private:
   std::vector<int> hru_timesteps_;
 
 public:
-  FileAccessChare(NumGRUInfo num_gru_info, FileAccessActorSettings fa_settings, CkChareID parent_proxy);
+  FileAccessChare(NumGRUInfo num_gru_info, FileAccessChareSettings fa_settings, CkChareID parent_proxy);
   FileAccessChare(CkMigrateMessage *msg) : num_gru_info_(), fa_settings_() {};
 
   int initFileAccessChare(const int file_gru, int num_hru);
@@ -71,7 +71,7 @@ public:
 };
 
 /*********************************************
- * File Access Actor state variables
+ * File Access Chare state variables
  *********************************************/
 struct file_access_state
 {

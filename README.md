@@ -1,6 +1,6 @@
 # SUMMA-Charm++
 
-A Charm++ parallel implementation of the SUMMA hydrological model, converted from the original CAF-based SUMMA-Actors.
+A Charm++ parallel implementation of the SUMMA hydrological model, converted from the original CAF-based SUMMA-Chares.
 
 ## 🎉 Project Status: **Reorganized & Core Components Working!**
 
@@ -103,7 +103,7 @@ make -j$(nproc)
 ### SUMMA Integration
 The project is configured to use an external SUMMA installation located at:
 ```
-/u1/pma753/Summa-Actors/build/summa
+/u1/pma753/Summa-Chares/build/summa
 ```
 
 To use a different SUMMA installation, either:
@@ -132,15 +132,15 @@ The project expects Charm++ to be built in the `charm/` directory. Ensure you ha
 
 ## Converting from CAF to Charm++
 
-This project is a conversion from the original CAF-based SUMMA-Actors. Key differences:
+This project is a conversion from the original CAF-based SUMMA-Chares. Key differences:
 
 ### Replaced Components
-- **CAF Actors** → **Charm++ Chares**
+- **CAF Chares** → **Charm++ Chares**
 - **CAF Message Passing** → **Charm++ Entry Methods**
 - **CAF Scheduler** → **Charm++ Runtime**
 
 ### Architecture Changes
-- Distributed actor model using Charm++ chares
+- Distributed chare model using Charm++ chares
 - Asynchronous message passing via entry methods
 - Automatic load balancing through Charm++ runtime
 

@@ -4,7 +4,7 @@
 #include <memory>
 #include <optional>
 #include "charm++.h"
-#include "file_access_actor_settings.hpp"
+#include "file_access_chare_settings.hpp"
 #include "fortran_data_types.hpp"
 #include "num_gru_info.hpp"
 
@@ -36,7 +36,7 @@ extern "C" {
 struct WriteOutputReturn {
   int err;
   std::string message;
-  std::vector<CkChareID> actor_to_update;
+  std::vector<CkChareID> chare_to_update;
   int num_steps_update;
 };
 
@@ -94,7 +94,7 @@ struct OutputFileDeleter {
  */
 class OutputBuffer {
   private:
-    FileAccessActorSettings fa_settings_;
+    FileAccessChareSettings fa_settings_;
     std::unique_ptr<void, OutputFileDeleter> handle_ncid_;
     NumGRUInfo num_gru_info_;
     int num_hru_;
@@ -112,7 +112,7 @@ class OutputBuffer {
 
 
   public:
-    OutputBuffer(FileAccessActorSettings fa_settings, NumGRUInfo num_gru_info,
+    OutputBuffer(FileAccessChareSettings fa_settings, NumGRUInfo num_gru_info,
         int num_hru, int num_timesteps) : fa_settings_(fa_settings), 
         num_gru_info_(num_gru_info), num_hru_(num_hru), 
         num_timesteps_(num_timesteps) {
@@ -148,7 +148,7 @@ class OutputBuffer {
 
     int getNumStepsBuffer(int gru_index);
 
-    int defOutput(const std::string& actor_address);
+    int defOutput(const std::string& chare_address);
     int setChunkSize();
     int allocateOutputBuffer(int num_timesteps);
     const std::optional<WriteOutputReturn*> addFailedGRU(int index_gru);

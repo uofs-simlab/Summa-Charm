@@ -1,4 +1,4 @@
-module INIT_HRU_ACTOR
+module INIT_HRU_CHARE
 ! used to declare and allocate summa data structures and initialize model state to known values
 USE,intrinsic :: iso_c_binding
 USE nrtype          ! variable types, etc.
@@ -12,7 +12,7 @@ USE data_types,only:&
 #ifdef V4_ACTIVE
 USE data_types,only:zlookup               ! x%z(:)%var(:)%lookup(:) -- lookup tables
 #endif
-USE actor_data_types,only:hru_type             ! hru_type
+USE chare_data_types,only:hru_type             ! hru_type
                     
 ! access missing values
 USE globalData,only:integerMissing   ! missing integer
@@ -119,7 +119,7 @@ subroutine initHRU(indx_gru, indx_hru, hru_data, err, message)
   if(err/=0)then; message=trim(message)//trim(cmessage); return; endif
   end do  ! looping through time structures
 
-  ! copy the time variables set up by the job_actor
+  ! copy the time variables set up by the job_chare
   hru_data%startTime_hru%var(:) = startTime%var(:)
   hru_data%finishTime_hru%var(:) = finshTime%var(:)
   hru_data%refTime_hru%var(:) = refTime%var(:)
@@ -352,7 +352,7 @@ subroutine readHRURestart(indxGRU, indxHRU, hru_data, err, message)
   real(dp)                                :: aquifer_start      ! initial aquifer storage
   ! ---------------------------------------------------------------------------------------
   ! initialize error control
-  err=0; message='hru_actor_readRestart/'
+  err=0; message='hru_chare_readRestart/'
 
   ! *****************************************************************************
   ! *** compute ancillary variables
@@ -512,4 +512,4 @@ subroutine setBEStepsIDATol(handle_hru_data,    &
   hru_data%mparStruct%var(iLookPARAM%absTolAquifr)%dat(1)        = absTolAquifr
 #endif
 end subroutine setBEStepsIDATol
-end module INIT_HRU_ACTOR
+end module INIT_HRU_CHARE

@@ -31,17 +31,17 @@ SummaChare::SummaChare(int start_gru, int num_gru, std::string config_file,
   readSettings(config_file_);
   printSettings();
   if (master_file_ != "") {
-    job_actor_settings_.file_manager_path_ = master_file_;
+    job_chare_settings_.file_manager_path_ = master_file_;
   }
   if (output_file_suffix_ != "") {
-    fa_actor_settings_.output_file_suffix_ = output_file_suffix_;
+    fa_chare_settings_.output_file_suffix_ = output_file_suffix_;
   }
 
   timing_info_ = TimingInfo();
   timing_info_.addTimePoint("total_duration");
   timing_info_.updateStartPoint("total_duration");
 
-  file_manager_ = std::make_unique<FileManager>(job_actor_settings_.file_manager_path_);
+  file_manager_ = std::make_unique<FileManager>(job_chare_settings_.file_manager_path_);
   auto err_msg = file_manager_->setTimesDirsAndFiles();
   if (!err_msg.empty()) {
     CkPrintf("ERROR--File Manager: %s\n", err_msg.c_str());
@@ -78,11 +78,11 @@ SummaChare::SummaChare(int start_gru, int num_gru, std::string config_file,
   CkPrintf("Log directory created: %s\n", log_folder_.c_str());
 
   batch_container_ = std::make_unique<BatchContainer>(start_gru_, num_gru_,
-    summa_actor_settings_.max_gru_per_job_, log_folder_);
+    summa_chare_settings_.max_gru_per_job_, log_folder_);
   CkPrintf("\n\nStarting SUMMA Chare with %d Batches\n\n", batch_container_->getBatchesRemaining());
 
   if (spawnJob() != 0) {
-    CkPrintf("ERROR--Summa_Actor: Unable To Spawn Job\n");
+    CkPrintf("ERROR--Summa_Chare: Unable To Spawn Job\n");
     return;
   }
 }
@@ -120,7 +120,7 @@ void SummaChare::reportError(int err_code, const std::string err_msg) {
 // TODO: Implement this in a way that is usable with Charm++
 /*
 [this](const down_msg& dm) {
-      CkPrintf("Lost Connection With A Connected Actor\nReason: %s\n",
+      CkPrintf("Lost Connection With A Connected Chare\nReason: %s\n",
                    to_string(dm.reason));
     }
 */
@@ -134,8 +134,8 @@ int SummaChare::spawnJob() {
   }
   current_batch_ = std::make_shared<Batch>(batch.value());
   current_job_ = CProxy_JobChare::ckNew(
-      batch.value(), summa_actor_settings_.enable_logging_, job_actor_settings_,
-      fa_actor_settings_, hru_actor_settings_, thisProxy.ckGetChareID());
+      batch.value(), summa_chare_settings_.enable_logging_, job_chare_settings_,
+      fa_chare_settings_, hru_chare_settings_, thisProxy.ckGetChareID());
   return 0;
 }
 
@@ -161,7 +161,7 @@ bool create_directories(const std::string &path) {
     return true;
 }
 int SummaChare::createLogDirectory() {
-  if (summa_actor_settings_.enable_logging_) {
+  if (summa_chare_settings_.enable_logging_) {
     auto now = std::chrono::system_clock::now();
     auto now_c = std::chrono::system_clock::to_time_t(now);
     std::tm *now_tm = std::localtime(&now_c);
@@ -169,8 +169,8 @@ int SummaChare::createLogDirectory() {
     ss << std::put_time(now_tm, "%m_%d_%H:%M");
     log_folder_ = "startgru-" + std::to_string(start_gru_) + "_endgru-" + 
         std::to_string(start_gru_ + num_gru_ - 1) + "_" + ss.str();
-    if (!summa_actor_settings_.log_dir_.empty())
-        log_folder_ = summa_actor_settings_.log_dir_ + "/" + log_folder_;
+    if (!summa_chare_settings_.log_dir_.empty())
+        log_folder_ = summa_chare_settings_.log_dir_ + "/" + log_folder_;
 
     return (create_directories(log_folder_)) ? 0 : -1;
   } else {
@@ -218,92 +218,92 @@ int SummaChare::readSettings(std::string config_file) {
   }
   settings_file.close();
 
-  summa_actor_settings_ = SummaActorSettings(
-      getSettings<int>(json_settings, "Summa_Actor", "max_gru_per_job")
+  summa_chare_settings_ = SummaChareSettings(
+      getSettings<int>(json_settings, "Summa_Chare", "max_gru_per_job")
           .value_or(GRU_PER_JOB),
-      getSettings<bool>(json_settings, "Summa_Actor", "enable_logging")
+      getSettings<bool>(json_settings, "Summa_Chare", "enable_logging")
           .value_or(false),
-      getSettings<std::string>(json_settings, "Summa_Actor", "log_dir")
+      getSettings<std::string>(json_settings, "Summa_Chare", "log_dir")
           .value_or(""));
 
-  fa_actor_settings_ = FileAccessActorSettings(
-      getSettings<int>(json_settings, "File_Access_Actor",
+  fa_chare_settings_ = FileAccessChareSettings(
+      getSettings<int>(json_settings, "File_Access_Chare",
                        "num_partitions_in_output_buffer")
           .value_or(NUM_PARTITIONS),
-      getSettings<int>(json_settings, "File_Access_Actor",
+      getSettings<int>(json_settings, "File_Access_Chare",
                        "num_timesteps_in_output_buffer")
           .value_or(OUTPUT_TIMESTEPS),
-      getSettings<std::string>(json_settings, "File_Access_Actor",
+      getSettings<std::string>(json_settings, "File_Access_Chare",
                                "output_file_suffix")
           .value_or(""));
 
-  job_actor_settings_ = JobActorSettings(
-      getSettings<std::string>(json_settings, "Job_Actor", "file_manager_path")
+  job_chare_settings_ = JobChareSettings(
+      getSettings<std::string>(json_settings, "Job_Chare", "file_manager_path")
           .value_or(""),
-      getSettings<int>(json_settings, "Job_Actor", "max_run_attempts")
+      getSettings<int>(json_settings, "Job_Chare", "max_run_attempts")
           .value_or(1),
-      getSettings<bool>(json_settings, "Job_Actor", "data_assimilation_mode")
+      getSettings<bool>(json_settings, "Job_Chare", "data_assimilation_mode")
           .value_or(false),
-      getSettings<int>(json_settings, "Job_Actor", "batch_size").value_or(10));
+      getSettings<int>(json_settings, "Job_Chare", "batch_size").value_or(10));
 
-  hru_actor_settings_ = HRUActorSettings(
-    getSettings<bool>(json_settings, "HRU_Actor", "print_output")
+  hru_chare_settings_ = HRUChareSettings(
+    getSettings<bool>(json_settings, "HRU_Chare", "print_output")
         .value_or(true),
-    getSettings<int>(json_settings, "HRU_Actor", "output_frequency")
+    getSettings<int>(json_settings, "HRU_Chare", "output_frequency")
         .value_or(OUTPUT_FREQUENCY),
-    getSettings<int>(json_settings, "HRU_Actor", "be_steps")
+    getSettings<int>(json_settings, "HRU_Chare", "be_steps")
         .value_or(MISSING_INT),
-    getSettings<double>(json_settings, "HRU_Actor", "rel_tol")
+    getSettings<double>(json_settings, "HRU_Chare", "rel_tol")
         .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Actor", "rel_tol_temp_cas")
+    getSettings<double>(json_settings, "HRU_Chare", "rel_tol_temp_cas")
         .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Actor", "rel_tol_temp_veg")
+    getSettings<double>(json_settings, "HRU_Chare", "rel_tol_temp_veg")
         .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Actor", "rel_tol_wat_veg")
+    getSettings<double>(json_settings, "HRU_Chare", "rel_tol_wat_veg")
         .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Actor", "rel_tol_temp_soil_snow")
+    getSettings<double>(json_settings, "HRU_Chare", "rel_tol_temp_soil_snow")
         .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Actor", "rel_tol_wat_snow")
+    getSettings<double>(json_settings, "HRU_Chare", "rel_tol_wat_snow")
         .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Actor", "rel_tol_matric")
+    getSettings<double>(json_settings, "HRU_Chare", "rel_tol_matric")
         .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Actor", "rel_tol_aquifr")
+    getSettings<double>(json_settings, "HRU_Chare", "rel_tol_aquifr")
         .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Actor", "abs_tol")
+    getSettings<double>(json_settings, "HRU_Chare", "abs_tol")
         .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Actor", "abs_tolWat")
+    getSettings<double>(json_settings, "HRU_Chare", "abs_tolWat")
         .value_or(MISSING_DOUBLE),
-    getSettings<double>(json_settings, "HRU_Actor", "abs_tolNrg")
+    getSettings<double>(json_settings, "HRU_Chare", "abs_tolNrg")
         .value_or(MISSING_DOUBLE),
-    getSettings<double>(json_settings, "HRU_Actor", "abs_tol_temp_cas")
+    getSettings<double>(json_settings, "HRU_Chare", "abs_tol_temp_cas")
         .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Actor", "abs_tol_temp_veg")
+    getSettings<double>(json_settings, "HRU_Chare", "abs_tol_temp_veg")
         .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Actor", "abs_tol_wat_veg")
+    getSettings<double>(json_settings, "HRU_Chare", "abs_tol_wat_veg")
         .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Actor", "abs_tol_temp_soil_snow")
+    getSettings<double>(json_settings, "HRU_Chare", "abs_tol_temp_soil_snow")
         .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Actor", "abs_tol_wat_snow")
+    getSettings<double>(json_settings, "HRU_Chare", "abs_tol_wat_snow")
         .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Actor", "abs_tol_matric")
+    getSettings<double>(json_settings, "HRU_Chare", "abs_tol_matric")
         .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Actor", "abs_tol_aquifr")
+    getSettings<double>(json_settings, "HRU_Chare", "abs_tol_aquifr")
         .value_or(1e-3),
-    getSettings<bool>(json_settings, "HRU_Actor", "default_tol")
+    getSettings<bool>(json_settings, "HRU_Chare", "default_tol")
         .value_or(true));
 
-    f_set_default_tol(hru_actor_settings_.default_tol_);
+    f_set_default_tol(hru_chare_settings_.default_tol_);
 
   return SUCCESS;
 }
 
 void SummaChare::printSettings() {
-  CkPrintf("************ DISTRIBUTED_SETTINGS ************\n %s\n ************ SUMMA_ACTORS SETTINGS ************\n%s"
-           "\n************ FILE_ACCESS_ACTOR SETTINGS ************\n%s\n************ JOB_ACTOR SETTINGS ************\n%s"
-           "\n************ HRU_ACTOR SETTINGS ************\n%s\n********************************************\n\n",
+  CkPrintf("************ DISTRIBUTED_SETTINGS ************\n %s\n ************ SUMMA_CHARES SETTINGS ************\n%s"
+           "\n************ FILE_ACCESS_CHARE SETTINGS ************\n%s\n************ JOB_CHARE SETTINGS ************\n%s"
+           "\n************ HRU_CHARE SETTINGS ************\n%s\n********************************************\n\n",
            distributed_settings_.toString().c_str(),
-           summa_actor_settings_.toString().c_str(),
-           fa_actor_settings_.toString().c_str(),
-           job_actor_settings_.toString().c_str(),
-           hru_actor_settings_.toString().c_str());
+           summa_chare_settings_.toString().c_str(),
+           fa_chare_settings_.toString().c_str(),
+           job_chare_settings_.toString().c_str(),
+           hru_chare_settings_.toString().c_str());
 }

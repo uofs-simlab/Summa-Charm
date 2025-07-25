@@ -2,12 +2,12 @@
 
 #include "JobChare.decl.h"
 #include "FileAccessChare.decl.h"
-#include "file_access_actor_settings.hpp" // For FileAccessActorSettings
+#include "file_access_chare_settings.hpp" // For FileAccessChareSettings
 // #include "file_access_chare.hpp"
-// #include "gru_batch_actor.hpp"
+// #include "gru_batch_chare.hpp"
 #include "gru_struc.hpp"
-#include "hru_actor_settings.hpp" // For HruActorSettings
-#include "job_actor_settings.hpp" // For JobActorSettings
+#include "hru_chare_settings.hpp" // For HruChareSettings
+#include "job_chare_settings.hpp" // For JobChareSettings
 #include "json.hpp"
 #include "num_gru_info.hpp" // For NumGRUInfo
 #include "timing_info.hpp"
@@ -52,9 +52,9 @@ private:
   NumGRUInfo num_gru_info_;
 
   // Settings
-  JobActorSettings job_actor_settings_;
-  FileAccessActorSettings fa_actor_settings_;
-  HRUActorSettings hru_actor_settings_;
+  JobChareSettings job_chare_settings_;
+  FileAccessChareSettings fa_chare_settings_;
+  HRUChareSettings hru_chare_settings_;
 
    //Min rel and abs tol values
   const double MIN_REL_TOL = 1e-6;
@@ -101,12 +101,12 @@ private:
 public:
   // Simplified constructor - takes batch and the chare ID
   JobChare(Batch batch, bool enable_logging,
-           JobActorSettings job_actor_settings,
-           FileAccessActorSettings fa_actor_settings,
-           HRUActorSettings hru_actor_settings,
+           JobChareSettings job_chare_settings,
+           FileAccessChareSettings fa_chare_settings,
+           HRUChareSettings hru_chare_settings,
            CkChareID summa_chare_proxy);
 
-  void spawnGruActors();
+  void spawnGruChares();
   void doneHRUJob(int job_index);
   void handleFinishedGRU(int job_index); 
   void finalizeJob();
@@ -121,7 +121,7 @@ public:
 
 
 /*********************************************
- * Job Actor Data Structures
+ * Job Chare Data Structures
  *********************************************/
 // Holds information about the GRUs
 struct GRU_Container {
@@ -135,16 +135,16 @@ struct GRU_Container {
 
 
 /*********************************************
- * Job Actor state variables
+ * Job Chare state variables
  *********************************************/
 struct job_state {
   TimingInfo job_timing;
   std::unique_ptr<Logger> logger;
   std::unique_ptr<ErrorLogger> err_logger;
   std::unique_ptr<SuccessLogger> success_logger;
-  // Actor References
-  CkChareID file_access_actor; // actor reference for the file_access_actor
-  CkChareID summa_chare_proxy;            // actor reference to the top-level SummaActor
+  // Chare References
+  CkChareID file_access_chare; // chare reference for the file_access_chare
+  CkChareID summa_chare_proxy;            // chare reference to the top-level SummaChare
 
   Batch batch; // Information about the number of HRUs and starting point 
 
@@ -156,7 +156,7 @@ struct job_state {
   std::unique_ptr<SummaInitStruc> summa_init_struc;
 
   // Variables for GRU monitoring
-  int dt_init_start_factor = 1; // Initial Factor for dt_init (coupled_em)
+  int dt_init_start_factor = 1; // Initial Fchare for dt_init (coupled_em)
   int num_gru_done = 0;         // The number of GRUs that have completed
   int num_gru_failed = 0;       // Number of GRUs that have failed
 
@@ -164,9 +164,9 @@ struct job_state {
   std::string hostname;
 
   
-  FileAccessActorSettings file_access_actor_settings;
-  JobActorSettings job_actor_settings; 
-  HRUActorSettings hru_actor_settings;
+  FileAccessChareSettings file_access_chare_settings;
+  JobChareSettings job_chare_settings; 
+  HRUChareSettings hru_chare_settings;
 
   // Forcing information
   int iFile = 1; // index of current forcing file from forcing file list

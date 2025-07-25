@@ -20,24 +20,24 @@
 
 using json = nlohmann::json;
 
-class FileAccessActorSettings
+class FileAccessChareSettings
 {
 public:
   int num_partitions_in_output_buffer_;
   int num_timesteps_in_output_buffer_;
   std::string output_file_suffix_;
 
-  FileAccessActorSettings(int num_partitions_in_output_buffer = 0,
+  FileAccessChareSettings(int num_partitions_in_output_buffer = 0,
                           int num_timesteps_in_output_buffer = 0,
                           std::string output_file_suffix = "")
       : num_partitions_in_output_buffer_(num_partitions_in_output_buffer),
         num_timesteps_in_output_buffer_(num_timesteps_in_output_buffer),
         output_file_suffix_(output_file_suffix) {};
-  ~FileAccessActorSettings() {};
+  ~FileAccessChareSettings() {};
 
   std::string toString()
   {
-    std::string str = "File Access Actor Settings:\n";
+    std::string str = "File Access Chare Settings:\n";
     str += "Num Partitions in Output Buffer: " +
            std::to_string(num_partitions_in_output_buffer_) + "\n";
     str += "Num Timesteps in Output Buffer: " +

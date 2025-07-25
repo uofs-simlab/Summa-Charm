@@ -56,7 +56,7 @@ module fileAccess_writeOutput
                       gru_hru_double,      & ! x%gru(:)%hru(:)%var(:)     (dp)
                       gru_hru_intVec,      & ! x%gru(:)%hru(:)%var(:)%dat (i4b)
                       gru_hru_doubleVec      ! x%gru(:)%hru(:)%var(:)%dat (dp)
-  USE actor_data_types,only:&
+  USE chare_data_types,only:&
                       time_dlength,          & ! var(:)%tim(:)%dat (dp)
                       time_i,                &
                       gru_hru_time_double,   &

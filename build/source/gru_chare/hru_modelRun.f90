@@ -22,7 +22,7 @@ module summa_modelRun
 ! calls the model physics
 USE,intrinsic :: iso_c_binding
 USE nrtype
-USE actor_data_types,only:hru_type
+USE chare_data_types,only:hru_type
 ! access missing values
 USE globalData,only:integerMissing         ! missing integer
 USE globalData,only:realMissing            ! missing double precision number

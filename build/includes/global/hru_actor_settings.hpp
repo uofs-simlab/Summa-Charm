@@ -20,7 +20,7 @@
 
 using json = nlohmann::json;
 
-class HRUActorSettings
+class HRUChareSettings
 {
 public:
   bool print_output_;
@@ -49,7 +49,7 @@ public:
 
   bool default_tol_;
 
-  HRUActorSettings(
+  HRUChareSettings(
       bool print_output = false,
       int output_frequency = 100,
       int be_steps = MISSING_INT,
@@ -95,11 +95,11 @@ public:
         abs_tol_aquifr_(abs_tol_aquifr),
         default_tol_(default_tol) {};
 
-  ~HRUActorSettings() {};
+  ~HRUChareSettings() {};
 
   std::string toString()
   {
-    std::string str = "HRU Actor Settings:\n";
+    std::string str = "HRU Chare Settings:\n";
     str += "Print Output: " + std::to_string(print_output_) + "\n";
     str += "Output Frequency: " + std::to_string(output_frequency_) + "\n";
     str += "BE Steps: " + std::to_string(be_steps_) + "\n";
