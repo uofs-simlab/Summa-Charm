@@ -39,23 +39,23 @@ GruChare::GruChare(int netcdf_index, int job_index,
     }
 
     f_setGruTolerances(gru_data_.get(), hru_actor_settings_.be_steps_,
-      // Relative Tolerances
-      hru_actor_settings_.rel_tol_, hru_actor_settings_.rel_tol_temp_cas_,
-      hru_actor_settings_.rel_tol_temp_veg_, 
-      hru_actor_settings_.rel_tol_wat_veg_,
-      hru_actor_settings_.rel_tol_temp_soil_snow_, 
-      hru_actor_settings_.rel_tol_wat_snow_,
-      hru_actor_settings_.rel_tol_matric_, hru_actor_settings_.rel_tol_aquifr_,
-      // Absolute Tolerances
-      hru_actor_settings_.abs_tol_,
-      hru_actor_settings_.abs_tolWat_, hru_actor_settings_.abs_tolNrg_,
-      hru_actor_settings_.abs_tol_temp_cas_, 
-      hru_actor_settings_.abs_tol_temp_veg_,
-      hru_actor_settings_.abs_tol_wat_veg_, 
-      hru_actor_settings_.abs_tol_temp_soil_snow_,
-      hru_actor_settings_.abs_tol_wat_snow_, 
-      hru_actor_settings_.abs_tol_matric_,
-      hru_actor_settings_.abs_tol_aquifr_);
+                       // Relative Tolerances
+                       hru_actor_settings_.rel_tol_, hru_actor_settings_.rel_tol_temp_cas_,
+                       hru_actor_settings_.rel_tol_temp_veg_,
+                       hru_actor_settings_.rel_tol_wat_veg_,
+                       hru_actor_settings_.rel_tol_temp_soil_snow_,
+                       hru_actor_settings_.rel_tol_wat_snow_,
+                       hru_actor_settings_.rel_tol_matric_, hru_actor_settings_.rel_tol_aquifr_,
+                       // Absolute Tolerances
+                       hru_actor_settings_.abs_tol_,
+                       hru_actor_settings_.abs_tolWat_, hru_actor_settings_.abs_tolNrg_,
+                       hru_actor_settings_.abs_tol_temp_cas_,
+                       hru_actor_settings_.abs_tol_temp_veg_,
+                       hru_actor_settings_.abs_tol_wat_veg_,
+                       hru_actor_settings_.abs_tol_temp_soil_snow_,
+                       hru_actor_settings_.abs_tol_wat_snow_,
+                       hru_actor_settings_.abs_tol_matric_,
+                       hru_actor_settings_.abs_tol_aquifr_);
 
     // // TODO: Implement data assimilation mode if needed
 }
@@ -86,6 +86,11 @@ void GruChare::runHRU()
 {
     int err = 0;
     std::unique_ptr<char[]> message(new char[256]);
+    if (timestep_ > num_steps_)
+    {
+        doneHRU();
+        return;
+    }
     while (num_steps_until_write_ > 0)
     {
         if (forcingStep_ > stepsInCurrentFFile_)
@@ -129,12 +134,9 @@ void GruChare::runHRU()
         output_step_++;
 
         if (timestep_ > num_steps_)
-        {
-            doneHRU();
             break;
-        }
     }
-    
+
     // Our output structure is full
     if (num_steps_until_write_ <= 0)
     {
@@ -144,7 +146,8 @@ void GruChare::runHRU()
 
 void GruChare::doneHRU()
 {
-    CProxy_JobChare(parent_).doneHRU(job_index_);
+    CkPrintf("GRU Chare caling doneHRU\n");
+    CProxy_JobChare(parent_).doneHRUJob(job_index_);
 }
 
 void GruChare::handleErr(int err, std::unique_ptr<char[]> &message)
@@ -158,13 +161,11 @@ void GruChare::handleErr(int err, std::unique_ptr<char[]> &message)
     CProxy_JobChare(parent_).handleGruChareError(job_index_, timestep_, err, message.get());
 }
 
-
 void GruChare::updateHRU()
 {
     int output_steps = CProxy_FileAccessChare(file_access_actor_).getNumOutputSteps(job_index_);
     num_steps_until_write_ = output_steps;
     CProxy_FileAccessChare(file_access_actor_).accessForcing(iFile_, thisProxy.ckGetChareID());
 }
-
 
 #include "GruChare.def.h"

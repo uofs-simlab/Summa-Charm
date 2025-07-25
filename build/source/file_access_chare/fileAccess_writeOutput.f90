@@ -117,7 +117,7 @@ subroutine writeOutput_fortran(handle_ncid, num_steps, start_gru, max_gru, &
   ! Change the C pointer to a fortran pointer
   call c_f_pointer(handle_ncid, ncid)
   call f_c_string_ptr(trim(message), message_r)
-  
+
   ! Write the Parameters if first write
   if (write_parm_flag)then
     do iStruct=1,size(structInfo)
@@ -146,7 +146,7 @@ subroutine writeOutput_fortran(handle_ncid, num_steps, start_gru, max_gru, &
       end do ! GRU
     end do ! structInfo
   end if
-  
+
   ! ****************************************************************************
   ! *** write basin data
   ! ****************************************************************************

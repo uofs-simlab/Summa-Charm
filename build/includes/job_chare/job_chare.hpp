@@ -107,7 +107,7 @@ public:
            CkChareID summa_chare_proxy);
 
   void spawnGruActors();
-  void doneHRU(int job_index);
+  void doneHRUJob(int job_index);
   void handleFinishedGRU(int job_index); 
   void finalizeJob();
   void restartFailures();

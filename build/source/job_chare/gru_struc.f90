@@ -111,12 +111,8 @@ subroutine f_readDimension(start_gru, num_gru, file_gru, file_hru, &
   end if
 
   ! allocate space for GRU indices
-  if (.not.allocated(gru_id)) then
-    allocate(gru_id(file_gru))
-  endif
-  if (.not.allocated(hru_ix)) then
-    allocate(hru_ix(file_hru),hru_id(file_hru),hru2gru_id(file_hru))
-  endif
+  allocate(gru_id(file_gru))
+  allocate(hru_ix(file_hru),hru_id(file_hru),hru2gru_id(file_hru))
   ! read gru_id from netcdf file
   err = nf90_inq_varid(ncID,"gruId",varID);     if (err/=0) then; message=trim(message)//'problem finding gruId'; return; end if
   err = nf90_get_var(ncID,varID,gru_id);        if (err/=0) then; message=trim(message)//'problem reading gruId'; return; end if
@@ -134,9 +130,7 @@ subroutine f_readDimension(start_gru, num_gru, file_gru, file_hru, &
   if (err/=0) then; message=trim(message)//trim(cmessage); return; end if
   
   hru_ix=arth(1,1,file_hru)
-  if (.not.allocated(gru_struc)) then
-    allocate(gru_struc(num_gru))
-  endif
+  allocate(gru_struc(num_gru))
   if (err /= 0) then; call f_c_string_ptr(trim(message), message_r); end if
 end subroutine f_readDimension
 
@@ -152,9 +146,7 @@ subroutine f_setHruCount(iGRU,sGRU) bind(C, name="f_setHruCount")
   gru_struc(iGRU)%gru_id   = gru_id(iGRU+sGRU-1)
   gru_struc(iGRU)%gru_nc   = iGRU+sGRU-1 
   
-  if (.not.allocated(gru_struc(iGRU)%hruInfo)) then
-    allocate(gru_struc(iGRU)%hruInfo(gru_struc(iGRU)%hruCount))
-  endif
+  allocate(gru_struc(iGRU)%hruInfo(gru_struc(iGRU)%hruCount))
   gru_struc(iGRU)%hruInfo(:)%hru_nc = pack(hru_ix,hru2gru_id == gru_struc(iGRU)%gru_id)
   gru_struc(iGRU)%hruInfo(:)%hru_ix = arth(iGRU,1,gru_struc(iGRU)%hruCount)                    ! set index of hru in run domain
   gru_struc(iGRU)%hruInfo(:)%hru_id = hru_id(gru_struc(iGRU)%hruInfo(:)%hru_nc)                ! set id of hru
@@ -166,9 +158,7 @@ subroutine f_setIndexMap() bind(C, name="f_setIndexMap")
   ! Local Variables
   integer                         :: iGRU
   
-  if (.not.allocated(index_map)) then
-    allocate(index_map(sum(gru_struc(:)%hruCount)))
-  endif
+  allocate(index_map(sum(gru_struc(:)%hruCount)))
   
   do iGRU = 1,sum(gru_struc(:)%hruCount)
     index_map(gru_struc(iGRU)%hruInfo(:)%hru_ix)%gru_ix   = iGRU                                 ! index of gru in run domain to which the hru belongs

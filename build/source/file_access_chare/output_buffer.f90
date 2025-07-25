@@ -66,7 +66,7 @@ subroutine f_defOutput(handle_ncid, start_gru, num_gru, num_hru, file_gru, &
   call c_f_pointer(handle_ncid, output_ncid)
   call c_f_string(file_extention_c,file_extention, 256)
   file_extention = trim(file_extention)
-  
+
   output_fileSuffix = ''
   if (output_fileSuffix(1:1) /= '_') output_fileSuffix='_'//trim(output_fileSuffix)
   if (output_fileSuffix(len_trim(output_fileSuffix):len_trim(output_fileSuffix)) == '_') output_fileSuffix(len_trim(output_fileSuffix):len_trim(output_fileSuffix)) = ' '
@@ -324,6 +324,9 @@ subroutine f_allocateOutputBuffer(max_steps, num_gru, err, message_r) &
 
   err=0; message="f_allocateOutputBuffer/"
   call f_c_string_ptr(trim(message), message_r)
+  if (allocated(outputTimeStep)) then
+    deallocate(outputTimeStep)
+  endif
 
   ! ****************************************************************************
   ! *** Initialize output time step
@@ -390,7 +393,7 @@ subroutine f_deallocateOutputBuffer(handle_ncid) &
   integer(c_int)                         :: iFreq
   character(LEN=256)                     :: message
   integer(i4b)                           :: err
-
+  
 
   call c_f_pointer(handle_ncid, output_ncid)
   
@@ -400,8 +403,13 @@ subroutine f_deallocateOutputBuffer(handle_ncid) &
     end if
   end do
 
-  deallocate(summa_struct)
-  deallocate(outputTimeStep)
+  if (allocated(summa_struct)) then
+    deallocate(summa_struct)
+  endif
+
+  if (allocated(outputTimeStep)) then
+    deallocate(outputTimeStep)
+  endif
 end subroutine
 
 

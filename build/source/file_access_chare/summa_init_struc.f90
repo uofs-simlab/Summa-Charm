@@ -319,7 +319,7 @@ subroutine f_deallocateInitStruc() bind(C, name="f_deallocateInitStruc")
   if(allocated(finshTime%var)) then; deallocate(finshTime%var); endif
   if(allocated(refTime%var)) then; deallocate(refTime%var); endif
   if(allocated(oldTime%var)) then; deallocate(oldTime%var); endif
-  
+
 end subroutine f_deallocateInitStruc
 
 end module summa_init_struc

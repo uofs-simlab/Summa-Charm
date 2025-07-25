@@ -263,8 +263,8 @@ void JobChare::finalizeJob()
 
 
   // Deallocate GRU_Struc
-  // gru_struc_.reset();
   summa_init_struc_.reset();
+  gru_struc_.reset(); 
   // Tell Parent we are done
   double total_duration = timing_info_.getDuration("total_duration").value_or(-1.0);
   double read_duration = std::get<0>(read_write_duration);
@@ -274,7 +274,7 @@ void JobChare::finalizeJob()
   CkPrintf("JobChare: Finalized successfully\n");
 }
 
-void JobChare::doneHRU(int job_index)
+void JobChare::doneHRUJob(int job_index)
 {
   handleFinishedGRU(job_index);
 }
