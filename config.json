@@ -1,20 +1,36 @@
 {
   "Summa_Chare": {
-    "max_gru_per_job": 10,
+    "max_gru_per_job": 25,
     "enable_logging": false,
     "log_dir": ""
   },
   "File_Access_Chare": {
-    "num_partitions_in_output_buffer": 1,
-    "num_timesteps_in_output_buffer": 2000
+    "num_partitions_in_output_buffer": 32,
+    "num_timesteps_in_output_buffer": 50
   },
   "Job_Chare": {
     "file_manager_path": "fileManager.txt",
     "max_run_attempts": 1
   },
   "HRU_Chare": {
-    "print_output": true,
+  "print_output": true,
     "output_frequency": 2000,
-    "dt_init_factor": 1
+    "abs_tol": 1e-5,
+    "rel_tol": 1e-5,
+    "rel_tol_temp_cas": 1e-5,
+    "rel_tol_temp_veg": 1e-5,
+    "rel_tol_wat_veg": 1e-5,
+    "rel_tol_temp_soil_snow": 1e-5,
+    "rel_tol_wat_snow": 1e-5,
+    "rel_tol_matric": 1e-5,
+    "rel_tol_aquifr": 1e-5,
+    "abs_tol_temp_cas": 1e-3,
+    "abs_tol_temp_veg": 1e-3,
+    "abs_tol_wat_veg": 1e-5,
+    "abs_tol_temp_soil_snow": 1e-3,
+    "abs_tol_wat_snow": 1e-5,
+    "abs_tol_matric": 1e-5,
+    "abs_tol_aquifr": 1e-5,
+    "default_tol": false
   }
 }

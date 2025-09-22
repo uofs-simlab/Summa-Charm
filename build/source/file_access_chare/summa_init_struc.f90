@@ -48,6 +48,7 @@ subroutine f_allocate(num_gru, err, message_r) bind(C, name="f_allocate")
   type(c_ptr),          intent(out)       :: message_r
   ! local variables
   integer(i4b)                            :: iStruct,iGRU      ! looping variables
+  integer(i4b)                            :: hruCount          ! number of local hydrologic response units
   character(len=256)                      :: message           ! error message
   character(len=256)                      :: cmessage          ! error message
 
@@ -95,9 +96,8 @@ subroutine f_allocate(num_gru, err, message_r) bind(C, name="f_allocate")
     
     ! miscellaneous variables
     nGRU                 => init_struc%nGRU              , & ! number of grouped response units
-    nHRU                 => init_struc%nHRU              , & ! number of global hydrologic response units
-    hruCount             => init_struc%hruCount              & ! number of local hydrologic response units
-  )
+    nHRU                 => init_struc%nHRU                & ! number of global hydrologic response units
+   )
 
   ! allocate other data structures
   do iStruct=1,size(structInfo)
@@ -319,7 +319,7 @@ subroutine f_deallocateInitStruc() bind(C, name="f_deallocateInitStruc")
   if(allocated(finshTime%var)) then; deallocate(finshTime%var); endif
   if(allocated(refTime%var)) then; deallocate(refTime%var); endif
   if(allocated(oldTime%var)) then; deallocate(oldTime%var); endif
-
+  
 end subroutine f_deallocateInitStruc
 
 end module summa_init_struc

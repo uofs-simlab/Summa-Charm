@@ -121,8 +121,9 @@ void GruChare::runHRU()
             return;
         }
         std::fill(message.get(), message.get() + 256, '\0'); // Clear message
+        int year, month, day, hour;
         writeGRUOutput_fortran(job_index_, timestep_, output_step_,
-                               gru_data_.get(), err, &message);
+                               gru_data_.get(), err, &message, year, month, day, hour);
         if (err != 0)
         {
             handleErr(err, message);

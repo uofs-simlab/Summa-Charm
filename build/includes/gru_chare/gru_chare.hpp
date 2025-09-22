@@ -25,7 +25,8 @@ extern "C"
     void runGRU_fortran(int &index_gru, int &timestep, void *gru_data,
                         int &dt_init_factor, int &err, void *message);
     void writeGRUOutput_fortran(int &index_gru, int &timestep, int &output_step,
-                                void *gru_data, int &err, void *message);
+                                void *gru_data, int &err, void *message, 
+                                int& year, int& month, int& day, int& hour);
     void f_setGruTolerances(void* gru_data, int& be_steps,
       // Relative Tolerances 
       double& rel_tol, double& rel_tol_temp_cas, double& rel_tol_temp_veg, 
