@@ -4,7 +4,7 @@ module output_buffer
   USE globalData,only:integerMissing      ! missing integer value
   USE globalData,only:realMissing         ! missing double precision value
   USE data_types
-  USE chare_data_types
+  USE actor_data_types
   implicit none
   public::f_defOutput
   public::f_setChunkSize
@@ -66,7 +66,7 @@ subroutine f_defOutput(handle_ncid, start_gru, num_gru, num_hru, file_gru, &
   call c_f_pointer(handle_ncid, output_ncid)
   call c_f_string(file_extention_c,file_extention, 256)
   file_extention = trim(file_extention)
-
+  
   output_fileSuffix = ''
   if (output_fileSuffix(1:1) /= '_') output_fileSuffix='_'//trim(output_fileSuffix)
   if (output_fileSuffix(len_trim(output_fileSuffix):len_trim(output_fileSuffix)) == '_') output_fileSuffix(len_trim(output_fileSuffix):len_trim(output_fileSuffix)) = ' '
@@ -325,7 +325,6 @@ subroutine f_allocateOutputBuffer(max_steps, num_gru, err, message_r) &
   err=0; message="f_allocateOutputBuffer/"
   call f_c_string_ptr(trim(message), message_r)
 
-
   ! ****************************************************************************
   ! *** Initialize output time step
   ! ****************************************************************************
@@ -342,7 +341,6 @@ subroutine f_allocateOutputBuffer(max_steps, num_gru, err, message_r) &
   ! ****************************************************************************
   ! *** Initialize output structure
   ! ****************************************************************************
-
   allocate(summa_struct(1))
   ! Statistics Structures
   allocate(summa_struct(1)%forcStat%gru(num_gru))
@@ -389,7 +387,7 @@ subroutine f_deallocateOutputBuffer(handle_ncid) &
   integer(c_int)                         :: iFreq
   character(LEN=256)                     :: message
   integer(i4b)                           :: err
-  
+
 
   call c_f_pointer(handle_ncid, output_ncid)
   

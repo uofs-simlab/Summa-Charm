@@ -29,7 +29,7 @@ public:
   int batch_size_;
 
   JobChareSettings(std::string file_manager_path = "",
-                   int max_run_attempts = 1,
+                   int max_run_attempts = 5,
                    bool data_assimilation_mode = false,
                    int batch_size = 10)
       : file_manager_path_(file_manager_path),

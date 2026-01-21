@@ -4,6 +4,7 @@
 #include "FileAccessChare.decl.h"
 #include "JobChare.decl.h"
 #include "hru_chare_settings.hpp"
+#include "tolarance_settings.hpp"
 #include "fortran_data_types.hpp"
 // #include "hru_chare.hpp"
 #include <vector>
@@ -29,11 +30,11 @@ extern "C"
                                 int& year, int& month, int& day, int& hour);
     void f_setGruTolerances(void* gru_data, int& be_steps,
       // Relative Tolerances 
-      double& rel_tol, double& rel_tol_temp_cas, double& rel_tol_temp_veg, 
+      double& rel_tol_temp_cas, double& rel_tol_temp_veg, 
       double& rel_tol_wat_veg, double& rel_tol_temp_soil_snow, 
       double& rel_tol_wat_snow, double& rel_tol_matric, double& rel_tol_aquifr, 
       // Absolute Tolerances
-      double& abs_tol, double& abs_tolWat, double& abs_tolNrg,
+    //   double& abs_tol, double& abs_tolWat, double& abs_tolNrg,
       double& abs_tol_temp_cas, double& abs_tol_temp_veg, 
       double& abs_tol_wat_veg, double& abs_tol_temp_soil_snow, 
       double& abs_tol_wat_snow, double& abs_tol_matric, 
@@ -53,6 +54,7 @@ class GruChare : public CBase_GruChare
     int netcdf_index_;
     int job_index_;
     HRUChareSettings hru_chare_settings_;
+    ToleranceSettings tolerance_settings_;
     int num_steps_output_buffer_;
     CkChareID file_access_chare_;
     CkChareID parent_;
@@ -75,7 +77,8 @@ class GruChare : public CBase_GruChare
 public:
     GruChare(int netcdf_index, int job_index,
              int num_steps, HRUChareSettings hru_chare_settings,
-             int num_output_steps, CkChareID file_access_chare, CkChareID parent);
+             int num_output_steps, CkChareID file_access_chare, CkChareID parent,
+             ToleranceSettings tolerance_settings);
     ~GruChare() {}
 
     void newForcingFile(int num_forc_steps, int iFile);

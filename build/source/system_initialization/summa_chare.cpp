@@ -250,49 +250,7 @@ int SummaChare::readSettings(std::string config_file) {
     getSettings<bool>(json_settings, "HRU_Chare", "print_output")
         .value_or(true),
     getSettings<int>(json_settings, "HRU_Chare", "output_frequency")
-        .value_or(OUTPUT_FREQUENCY),
-    getSettings<int>(json_settings, "HRU_Chare", "be_steps")
-        .value_or(MISSING_INT),
-    getSettings<double>(json_settings, "HRU_Chare", "rel_tol")
-        .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Chare", "rel_tol_temp_cas")
-        .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Chare", "rel_tol_temp_veg")
-        .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Chare", "rel_tol_wat_veg")
-        .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Chare", "rel_tol_temp_soil_snow")
-        .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Chare", "rel_tol_wat_snow")
-        .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Chare", "rel_tol_matric")
-        .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Chare", "rel_tol_aquifr")
-        .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Chare", "abs_tol")
-        .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Chare", "abs_tolWat")
-        .value_or(MISSING_DOUBLE),
-    getSettings<double>(json_settings, "HRU_Chare", "abs_tolNrg")
-        .value_or(MISSING_DOUBLE),
-    getSettings<double>(json_settings, "HRU_Chare", "abs_tol_temp_cas")
-        .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Chare", "abs_tol_temp_veg")
-        .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Chare", "abs_tol_wat_veg")
-        .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Chare", "abs_tol_temp_soil_snow")
-        .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Chare", "abs_tol_wat_snow")
-        .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Chare", "abs_tol_matric")
-        .value_or(1e-3),
-    getSettings<double>(json_settings, "HRU_Chare", "abs_tol_aquifr")
-        .value_or(1e-3),
-    getSettings<bool>(json_settings, "HRU_Chare", "default_tol")
-        .value_or(true));
-
-    f_set_default_tol(hru_chare_settings_.default_tol_);
+        .value_or(OUTPUT_FREQUENCY));
 
   return SUCCESS;
 }

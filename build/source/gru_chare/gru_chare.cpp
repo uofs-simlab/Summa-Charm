@@ -3,12 +3,14 @@
 #include "FileAccessChare.decl.h"
 
 GruChare::GruChare(int netcdf_index, int job_index,
-                   int num_steps, HRUChareSettings hru_chare_settings, int num_output_steps,
-                   CkChareID file_access_chare, CkChareID parent)
+                   int num_steps, HRUChareSettings hru_chare_settings, 
+                   int num_output_steps,
+                   CkChareID file_access_chare, CkChareID parent,
+                   ToleranceSettings tolerance_settings)
     : netcdf_index_(netcdf_index), job_index_(job_index),
       num_steps_(num_steps), hru_chare_settings_(hru_chare_settings),
       num_steps_output_buffer_(num_output_steps), file_access_chare_(file_access_chare),
-      parent_(parent)
+      parent_(parent), tolerance_settings_(tolerance_settings)
 {
     int err = 0;
     f_getNumHruInGru(job_index_, num_hrus_);
@@ -38,24 +40,22 @@ GruChare::GruChare(int netcdf_index, int job_index,
         return;
     }
 
-    f_setGruTolerances(gru_data_.get(), hru_chare_settings_.be_steps_,
+    f_setGruTolerances(gru_data_.get(), tolerance_settings_.be_steps_,
                        // Relative Tolerances
-                       hru_chare_settings_.rel_tol_, hru_chare_settings_.rel_tol_temp_cas_,
-                       hru_chare_settings_.rel_tol_temp_veg_,
-                       hru_chare_settings_.rel_tol_wat_veg_,
-                       hru_chare_settings_.rel_tol_temp_soil_snow_,
-                       hru_chare_settings_.rel_tol_wat_snow_,
-                       hru_chare_settings_.rel_tol_matric_, hru_chare_settings_.rel_tol_aquifr_,
+                       tolerance_settings_.rel_tol_temp_cas_,
+                       tolerance_settings_.rel_tol_temp_veg_,
+                       tolerance_settings_.rel_tol_wat_veg_,
+                       tolerance_settings_.rel_tol_temp_soil_snow_,
+                       tolerance_settings_.rel_tol_wat_snow_,
+                       tolerance_settings_.rel_tol_matric_, tolerance_settings_.rel_tol_aquifr_,
                        // Absolute Tolerances
-                       hru_chare_settings_.abs_tol_,
-                       hru_chare_settings_.abs_tolWat_, hru_chare_settings_.abs_tolNrg_,
-                       hru_chare_settings_.abs_tol_temp_cas_,
-                       hru_chare_settings_.abs_tol_temp_veg_,
-                       hru_chare_settings_.abs_tol_wat_veg_,
-                       hru_chare_settings_.abs_tol_temp_soil_snow_,
-                       hru_chare_settings_.abs_tol_wat_snow_,
-                       hru_chare_settings_.abs_tol_matric_,
-                       hru_chare_settings_.abs_tol_aquifr_);
+                       tolerance_settings_.abs_tol_temp_cas_,
+                       tolerance_settings_.abs_tol_temp_veg_,
+                       tolerance_settings_.abs_tol_wat_veg_,
+                       tolerance_settings_.abs_tol_temp_soil_snow_,
+                       tolerance_settings_.abs_tol_wat_snow_,
+                       tolerance_settings_.abs_tol_matric_,
+                       tolerance_settings_.abs_tol_aquifr_);
 
     // // TODO: Implement data assimilation mode if needed
 }

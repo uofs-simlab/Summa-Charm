@@ -85,14 +85,14 @@ JobChare::JobChare(Batch batch, bool enable_logging,
     CProxy_SummaChare(summa_chare_proxy_).reportError(-2, err_msg);
     return;
   }
-  summa_init_struc_->getInitTolerance(rel_tol_, abs_tol_, rel_tol_temp_cas_, 
-      rel_tol_temp_veg_, rel_tol_wat_veg_, 
-      rel_tol_temp_soil_snow_, rel_tol_wat_snow_, 
-      rel_tol_matric_, rel_tol_aquifr_, 
-      abs_tol_temp_cas_, abs_tol_temp_veg_, 
-      abs_tol_wat_veg_, abs_tol_temp_soil_snow_, 
-      abs_tol_wat_snow_, abs_tol_matric_, 
-      abs_tol_aquifr_, default_tol_);
+  summa_init_struc_->getInitTolerance(tolerance_settings_.rel_tol_temp_cas_, 
+      tolerance_settings_.rel_tol_temp_veg_, tolerance_settings_.rel_tol_wat_veg_, 
+      tolerance_settings_.rel_tol_temp_soil_snow_, tolerance_settings_.rel_tol_wat_snow_, 
+      tolerance_settings_.rel_tol_matric_, tolerance_settings_.rel_tol_aquifr_, 
+      tolerance_settings_.abs_tol_temp_cas_, tolerance_settings_.abs_tol_temp_veg_, 
+      tolerance_settings_.abs_tol_wat_veg_, tolerance_settings_.abs_tol_temp_soil_snow_, 
+      tolerance_settings_.abs_tol_wat_snow_, tolerance_settings_.abs_tol_matric_, 
+      tolerance_settings_.abs_tol_aquifr_, default_tol_, tolerance_settings_.be_steps_);
 
   num_gru_info_ = NumGRUInfo(batch_.getStartHRU(), batch_.getStartHRU(), batch_.getNumHRU(),
                              batch_.getNumHRU(), gru_struc_->getFileGru(), false);
@@ -129,90 +129,7 @@ JobChare::JobChare(Batch batch, bool enable_logging,
 void JobChare::spawnGruChares()
 {
   CkPrintf("JobChare: Spawning GRU Chares\n");
-  if (hru_chare_settings_.default_tol_ == true){
-    rel_tol_temp_cas_     = hru_chare_settings_.rel_tol_;
-    rel_tol_temp_veg_     = hru_chare_settings_.rel_tol_;
-    rel_tol_wat_veg_      = hru_chare_settings_.rel_tol_;
-    rel_tol_temp_soil_snow_= hru_chare_settings_.rel_tol_;
-    rel_tol_wat_snow_     = hru_chare_settings_.rel_tol_;
-    rel_tol_matric_       = hru_chare_settings_.rel_tol_;
-    rel_tol_aquifr_       = hru_chare_settings_.rel_tol_;
-
-    abs_tol_temp_cas_     = hru_chare_settings_.abs_tol_;
-    abs_tol_temp_veg_     = hru_chare_settings_.abs_tol_;
-    abs_tol_wat_veg_      = hru_chare_settings_.abs_tol_;
-    abs_tol_temp_soil_snow_= hru_chare_settings_.abs_tol_;
-    abs_tol_wat_snow_     = hru_chare_settings_.abs_tol_;
-    abs_tol_matric_       = hru_chare_settings_.abs_tol_;
-    abs_tol_aquifr_       = hru_chare_settings_.abs_tol_;
-  } else {
-  // TODO: Implement f_getBeSteps, f_getRelTol, and f_getAbsTol
-
-  // if (hru_chare_settings_.be_steps_ > 0) {
-  //   // f_getBeSteps();
-  //   be_steps_ = hru_chare_settings_.be_steps_;
-  // }
-
-  if (hru_chare_settings_.rel_tol_ > 0) {
-    rel_tol_ = hru_chare_settings_.rel_tol_;
-  }
-
-  if (hru_chare_settings_.abs_tol_ > 0) {
-    abs_tol_ = hru_chare_settings_.abs_tol_;
-  // if (hru_chare_settings_.abs_tolWat_ > 0) {
-  //   // f_getAbsTol();
-  //   abs_tolWat_ = hru_chare_settings_.abs_tolWat_;
-  // }
-
-  // if (hru_chare_settings_.abs_tolNrg_ > 0) {
-  //   // f_getAbsTol();
-  //   abs_tolNrg_ = hru_chare_settings_.abs_tolNrg_;
-  }
-
-  // Initilize other tolerance values
-  if (hru_chare_settings_.rel_tol_temp_cas_ > 0) {
-    rel_tol_temp_cas_ = hru_chare_settings_.rel_tol_temp_cas_;
-  }
-  if (hru_chare_settings_.rel_tol_temp_veg_ > 0) {
-    rel_tol_temp_veg_ = hru_chare_settings_.rel_tol_temp_veg_;
-  }
-  if (hru_chare_settings_.rel_tol_wat_veg_ > 0) {
-    rel_tol_wat_veg_ = hru_chare_settings_.rel_tol_wat_veg_;
-  }
-  if (hru_chare_settings_.rel_tol_temp_soil_snow_ > 0) {
-    rel_tol_temp_soil_snow_ = hru_chare_settings_.rel_tol_temp_soil_snow_;
-  }
-  if (hru_chare_settings_.rel_tol_wat_snow_ > 0) {
-    rel_tol_wat_snow_ = hru_chare_settings_.rel_tol_wat_snow_;
-  }
-  if (hru_chare_settings_.rel_tol_matric_ > 0) {
-    rel_tol_matric_ = hru_chare_settings_.rel_tol_matric_;
-  }
-  if (hru_chare_settings_.rel_tol_aquifr_ > 0) {
-    rel_tol_aquifr_ = hru_chare_settings_.rel_tol_aquifr_;
-  }
-  if (hru_chare_settings_.abs_tol_temp_cas_ > 0) {
-    abs_tol_temp_cas_ = hru_chare_settings_.abs_tol_temp_cas_;
-  }
-  if (hru_chare_settings_.abs_tol_temp_veg_ > 0) {
-    abs_tol_temp_veg_ = hru_chare_settings_.abs_tol_temp_veg_;
-  }
-  if (hru_chare_settings_.abs_tol_wat_veg_ > 0) {
-    abs_tol_wat_veg_ = hru_chare_settings_.abs_tol_wat_veg_;
-  }
-  if (hru_chare_settings_.abs_tol_temp_soil_snow_ > 0) {
-    abs_tol_temp_soil_snow_ = hru_chare_settings_.abs_tol_temp_soil_snow_;
-  }
-  if (hru_chare_settings_.abs_tol_wat_snow_ > 0) {
-    abs_tol_wat_snow_ = hru_chare_settings_.abs_tol_wat_snow_;
-  }
-  if (hru_chare_settings_.abs_tol_matric_ > 0) {
-    abs_tol_matric_ = hru_chare_settings_.abs_tol_matric_;
-  }
-  if (hru_chare_settings_.abs_tol_aquifr_ > 0) {
-    abs_tol_aquifr_ = hru_chare_settings_.abs_tol_aquifr_;
-  }
-}
+  // Tolerance values are already set in tolerance_settings_ - no need to copy them
 
   CkChareID fileAccessChareID = file_access_chare_.ckGetChareID();
 
@@ -225,14 +142,10 @@ void JobChare::spawnGruChares()
 
     CProxy_GruChare gru_chare_proxy =
         CProxy_GruChare::ckNew(netcdf_index, job_index, num_steps_, hru_chare_settings_,
-                               fa_chare_settings_.num_timesteps_in_output_buffer_, fileAccessChareID, thisProxy.ckGetChareID());
+                               fa_chare_settings_.num_timesteps_in_output_buffer_, fileAccessChareID, thisProxy.ckGetChareID(), tolerance_settings_);
     std::unique_ptr<GRU> gru_obj = std::make_unique<GRU>(
-        netcdf_index, job_index, gru_chare_proxy.ckGetChareID(), dt_init_factor_, rel_tol_,
-        abs_tol_,  rel_tol_temp_cas_, rel_tol_temp_veg_, rel_tol_wat_veg_,
-        rel_tol_temp_soil_snow_, rel_tol_wat_snow_, rel_tol_matric_,
-        rel_tol_aquifr_, abs_tol_temp_cas_, abs_tol_temp_veg_, abs_tol_wat_veg_,
-        abs_tol_temp_soil_snow_, abs_tol_wat_snow_, abs_tol_matric_,
-        abs_tol_aquifr_, job_chare_settings_.max_run_attempts_);
+        netcdf_index, job_index, gru_chare_proxy.ckGetChareID(), dt_init_factor_, tolerance_settings_,
+        default_tol_, job_chare_settings_.max_run_attempts_);
     gru_struc_->addGRU(std::move(gru_obj));
     gru_chare_proxy.updateHRU();
   }
@@ -285,14 +198,14 @@ void JobChare::handleFinishedGRU(int job_index)
   gru_struc_->getGRU(job_index)->setSuccess();
   success_logger_->logSuccess(gru_struc_->getGRU(job_index)->getIndexNetcdf(),
                               gru_struc_->getGRU(job_index)->getIndexJob(),
-                              rel_tol_, abs_tol_,
-                              rel_tol_temp_cas_, rel_tol_temp_veg_,
-                              rel_tol_wat_veg_, rel_tol_temp_soil_snow_,
-                              rel_tol_wat_snow_, rel_tol_matric_,
-                              rel_tol_aquifr_, abs_tol_temp_cas_,
-                              abs_tol_temp_veg_, abs_tol_wat_veg_,
-                              abs_tol_temp_soil_snow_, abs_tol_wat_snow_,
-                              abs_tol_matric_, abs_tol_aquifr_, default_tol_);
+                              MISSING_DOUBLE, MISSING_DOUBLE,  // Using default rel_tol and abs_tol values
+                              tolerance_settings_.rel_tol_temp_cas_, tolerance_settings_.rel_tol_temp_veg_,
+                              tolerance_settings_.rel_tol_wat_veg_, tolerance_settings_.rel_tol_temp_soil_snow_,
+                              tolerance_settings_.rel_tol_wat_snow_, tolerance_settings_.rel_tol_matric_,
+                              tolerance_settings_.rel_tol_aquifr_, tolerance_settings_.abs_tol_temp_cas_,
+                              tolerance_settings_.abs_tol_temp_veg_, tolerance_settings_.abs_tol_wat_veg_,
+                              tolerance_settings_.abs_tol_temp_soil_snow_, tolerance_settings_.abs_tol_wat_snow_,
+                              tolerance_settings_.abs_tol_matric_, tolerance_settings_.abs_tol_aquifr_, default_tol_);
   std::string update_str =
       "GRU Finished: " + std::to_string(gru_struc_->getNumGruDone()) + "/" +
       std::to_string(gru_struc_->getNumGru()) + " -- GlobalGRU=" +
@@ -328,54 +241,36 @@ void JobChare::restartFailures()
       // Update tolerances (general and specific)
       bool tol_updated = false;
 
-      tol_updated |= tighten_tol(rel_tol_, MIN_REL_TOL, "rel_tol_");
-      hru_chare_settings_.rel_tol_ = rel_tol_;
+      tolerance_settings_.be_steps_ = tolerance_settings_.be_steps_ * 2;
+      CkPrintf("Async Mode: Tightening be steps: %d\n", tolerance_settings_.be_steps_);
+      
+      tol_updated |= tighten_tol(tolerance_settings_.rel_tol_temp_cas_, MIN_REL_TOL, "rel_tol_temp_cas_");
 
-      tol_updated |= tighten_tol(abs_tol_, MIN_ABS_TOL, "abs_tol_");
-      hru_chare_settings_.abs_tol_ = abs_tol_;
+      tol_updated |= tighten_tol(tolerance_settings_.rel_tol_temp_veg_, MIN_REL_TOL, "rel_tol_temp_veg_");
 
-      tol_updated |= tighten_tol(rel_tol_temp_cas_, MIN_REL_TOL, "rel_tol_temp_cas_");
-      hru_chare_settings_.rel_tol_temp_cas_ = rel_tol_temp_cas_;
+      tol_updated |= tighten_tol(tolerance_settings_.rel_tol_wat_veg_, MIN_REL_TOL, "rel_tol_wat_veg_");
 
-      tol_updated |= tighten_tol(rel_tol_temp_veg_, MIN_REL_TOL, "rel_tol_temp_veg_");
-      hru_chare_settings_.rel_tol_temp_veg_ = rel_tol_temp_veg_;
+      tol_updated |= tighten_tol(tolerance_settings_.rel_tol_temp_soil_snow_, MIN_REL_TOL, "rel_tol_temp_soil_snow_");
 
-      tol_updated |= tighten_tol(rel_tol_wat_veg_, MIN_REL_TOL, "rel_tol_wat_veg_");
-      hru_chare_settings_.rel_tol_wat_veg_ = rel_tol_wat_veg_;
+      tol_updated |= tighten_tol(tolerance_settings_.rel_tol_wat_snow_, MIN_REL_TOL, "rel_tol_wat_snow_");
 
-      tol_updated |= tighten_tol(rel_tol_temp_soil_snow_, MIN_REL_TOL, "rel_tol_temp_soil_snow_");
-      hru_chare_settings_.rel_tol_temp_soil_snow_ = rel_tol_temp_soil_snow_;
+      tol_updated |= tighten_tol(tolerance_settings_.rel_tol_matric_, MIN_REL_TOL, "rel_tol_matric_");
 
-      tol_updated |= tighten_tol(rel_tol_wat_snow_, MIN_REL_TOL, "rel_tol_wat_snow_");
-      hru_chare_settings_.rel_tol_wat_snow_ = rel_tol_wat_snow_;
+      tol_updated |= tighten_tol(tolerance_settings_.rel_tol_aquifr_, MIN_REL_TOL, "rel_tol_aquifr_");
 
-      tol_updated |= tighten_tol(rel_tol_matric_, MIN_REL_TOL, "rel_tol_matric_");
-      hru_chare_settings_.rel_tol_matric_ = rel_tol_matric_;
+      tol_updated |= tighten_tol(tolerance_settings_.abs_tol_temp_cas_, MIN_ABS_TOL, "abs_tol_temp_cas_");
 
-      tol_updated |= tighten_tol(rel_tol_aquifr_, MIN_REL_TOL, "rel_tol_aquifr_");
-      hru_chare_settings_.rel_tol_aquifr_ = rel_tol_aquifr_;
+      tol_updated |= tighten_tol(tolerance_settings_.abs_tol_temp_veg_, MIN_ABS_TOL, "abs_tol_temp_veg_");
 
-      tol_updated |= tighten_tol(abs_tol_temp_cas_, MIN_ABS_TOL, "abs_tol_temp_cas_");
-      hru_chare_settings_.abs_tol_temp_cas_ = abs_tol_temp_cas_;
+      tol_updated |= tighten_tol(tolerance_settings_.abs_tol_wat_veg_, MIN_ABS_TOL, "abs_tol_wat_veg_");
 
-      tol_updated |= tighten_tol(abs_tol_temp_veg_, MIN_ABS_TOL, "abs_tol_temp_veg_");
-      hru_chare_settings_.abs_tol_temp_veg_ = abs_tol_temp_veg_;
+      tol_updated |= tighten_tol(tolerance_settings_.abs_tol_temp_soil_snow_, MIN_ABS_TOL, "abs_tol_temp_soil_snow_");
 
-      tol_updated |= tighten_tol(abs_tol_wat_veg_, MIN_ABS_TOL, "abs_tol_wat_veg_");
-      hru_chare_settings_.abs_tol_wat_veg_ = abs_tol_wat_veg_;
+      tol_updated |= tighten_tol(tolerance_settings_.abs_tol_wat_snow_, MIN_ABS_TOL, "abs_tol_wat_snow_");
 
-      tol_updated |= tighten_tol(abs_tol_temp_soil_snow_, MIN_ABS_TOL, "abs_tol_temp_soil_snow_");
-      hru_chare_settings_.abs_tol_temp_soil_snow_ = abs_tol_temp_soil_snow_;
+      tol_updated |= tighten_tol(tolerance_settings_.abs_tol_matric_, MIN_ABS_TOL, "abs_tol_matric_");
 
-      tol_updated |= tighten_tol(abs_tol_wat_snow_, MIN_ABS_TOL, "abs_tol_wat_snow_");
-      hru_chare_settings_.abs_tol_wat_snow_ = abs_tol_wat_snow_;
-
-      tol_updated |= tighten_tol(abs_tol_matric_, MIN_ABS_TOL, "abs_tol_matric_");
-      hru_chare_settings_.abs_tol_matric_ = abs_tol_matric_;
-
-      tol_updated |= tighten_tol(abs_tol_aquifr_, MIN_ABS_TOL, "abs_tol_aquifr_");
-      hru_chare_settings_.abs_tol_aquifr_ = abs_tol_aquifr_; 
-
+      tol_updated |= tighten_tol(tolerance_settings_.abs_tol_aquifr_, MIN_ABS_TOL, "abs_tol_aquifr_");
 
   // notify file_access_chare
   // TODO: Make it sync type in .ci so it waits untill finishing reconstruct()
@@ -391,13 +286,14 @@ void JobChare::restartFailures()
                  std::to_string(job_index));
     CkPrintf("Async Mode: Restarting GRU: %s", std::to_string(job_index).c_str());
     int netcdf_index = job_index + gru_struc_->getStartGru() - 1;
+    CkChareID fileAccessChareID = file_access_chare_.ckGetChareID();
     CProxy_GruChare gru_chare_proxy =
         CProxy_GruChare::ckNew(netcdf_index, job_index, num_steps_, hru_chare_settings_,
-                               fa_chare_settings_.num_timesteps_in_output_buffer_, file_access_chare_, thisProxy.ckGetChareID());
+                               fa_chare_settings_.num_timesteps_in_output_buffer_, fileAccessChareID, thisProxy.ckGetChareID(), tolerance_settings_);
     gru_struc_->decrementNumGruFailed();
     std::unique_ptr<GRU> gru_obj = std::make_unique<GRU>(
-        netcdf_index, job_index, gru_chare_proxy.ckGetChareID(), dt_init_factor_, rel_tol_,
-        abs_tol_, job_chare_settings_.max_run_attempts_);
+        netcdf_index, job_index, gru_chare_proxy.ckGetChareID(), dt_init_factor_, tolerance_settings_,
+        default_tol_, job_chare_settings_.max_run_attempts_);
     gru_struc_->addGRU(std::move(gru_obj));
     gru_chare_proxy.updateHRU();
   }

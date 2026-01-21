@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include "charm++.h"
+#include "tolarance_settings.hpp"
 
 // Forward declarations
 extern "C"
@@ -40,11 +41,9 @@ private:
   int num_hrus_; // The number of HRUs in the GRU
 
   // Modifyable Parameters
-  bool def_tol_;       // Default tol
   int dt_init_factor_; // The initial dt for the GRU
   int be_steps_;       // The number of BE steps for the GRU
   // Relative Tolerances
-  double rel_tol_;                // The relative tolerance for the GRU
   double rel_tol_temp_cas_;       // The relative tolerance for the temperature of the cas
   double rel_tol_temp_veg_;       // The relative tolerance for the temperature of the veg
   double rel_tol_wat_veg_;        // The relative tolerance for the water content of the veg
@@ -53,9 +52,6 @@ private:
   double rel_tol_matric_;         // The relative tolerance for the matric potential
   double rel_tol_aquifr_;         // The relative tolerance for the aquifer
   // Absolute Tolerances
-  double abs_tol_;                // The absolute tolerance for the GRU
-  double abs_tolWat_;             // The absolute tolerance for the GRU water states
-  double abs_tolNrg_;             // The absolute tolerance for the GRU energy states
   double abs_tol_temp_cas_;       // The absolute tolerance for the temperature of the cas
   double abs_tol_temp_veg_;       // The absolute tolerance for the temperature of the veg
   double abs_tol_wat_veg_;        // The absolute tolerance for the water content of the veg
@@ -74,36 +70,25 @@ private:
 public:
   // Constructor
   GRU(int index_netcdf, int index_job, CkChareID chare_ref,
-      int dt_init_factor, int be_steps,
-      // Relative Tolerances
-      double rel_tol, double rel_tol_temp_cas = 0.0,
-      double rel_tol_temp_veg = 0.0, double rel_tol_wat_veg = 0.0,
-      double rel_tol_temp_soil_snow = 0.0, double rel_tol_wat_snow = 0.0,
-      double rel_tol_matric = 0.0, double rel_tol_aquifr = 0.0,
-      // Absolute Tolerances
-      double abs_tol = 0.0, double abs_tolWat = 0.0, double abs_tolNrg = 0.0,
-      double abs_tol_temp_cas = 0.0, double abs_tol_temp_veg = 0.0,
-      double abs_tol_wat_veg = 0.0, double abs_tol_temp_soil_snow = 0.0,
-      double abs_tol_wat_snow = 0.0, double abs_tol_matric = 0.0,
-      double abs_tol_aquifr = 0.0,
+      int dt_init_factor, ToleranceSettings settings,
       bool /*def_tol*/ = true, int max_attempts = 5)
       : index_netcdf_(index_netcdf), index_job_(index_job), chare_ref_(chare_ref),
-        dt_init_factor_(dt_init_factor), be_steps_(be_steps),
-        // Relative Tolerances
-        rel_tol_(rel_tol), rel_tol_temp_cas_(rel_tol_temp_cas),
-        rel_tol_temp_veg_(rel_tol_temp_veg),
-        rel_tol_wat_veg_(rel_tol_wat_veg),
-        rel_tol_temp_soil_snow_(rel_tol_temp_soil_snow),
-        rel_tol_wat_snow_(rel_tol_wat_snow),
-        rel_tol_matric_(rel_tol_matric), rel_tol_aquifr_(rel_tol_aquifr),
-        abs_tol_(abs_tol), abs_tolWat_(abs_tolWat), abs_tolNrg_(abs_tolNrg),
-        abs_tol_temp_cas_(abs_tol_temp_cas),
-        abs_tol_temp_veg_(abs_tol_temp_veg),
-        abs_tol_wat_veg_(abs_tol_wat_veg),
-        abs_tol_temp_soil_snow_(abs_tol_temp_soil_snow),
-        abs_tol_wat_snow_(abs_tol_wat_snow), abs_tol_matric_(abs_tol_matric),
-        abs_tol_aquifr_(abs_tol_aquifr),
-        def_tol_(f_get_default_tol()),
+        dt_init_factor_(dt_init_factor), 
+        be_steps_(settings.be_steps_),
+        rel_tol_temp_cas_(settings.rel_tol_temp_cas_),
+        rel_tol_temp_veg_(settings.rel_tol_temp_veg_),
+        rel_tol_wat_veg_(settings.rel_tol_wat_veg_),
+        rel_tol_temp_soil_snow_(settings.rel_tol_temp_soil_snow_),
+        rel_tol_wat_snow_(settings.rel_tol_wat_snow_),
+        rel_tol_matric_(settings.rel_tol_matric_),
+        // Absolute Tolerances
+        abs_tol_temp_cas_(settings.abs_tol_temp_cas_),
+        abs_tol_temp_veg_(settings.abs_tol_temp_veg_),
+        abs_tol_wat_veg_(settings.abs_tol_wat_veg_),
+        abs_tol_temp_soil_snow_(settings.abs_tol_temp_soil_snow_),
+        abs_tol_wat_snow_(settings.abs_tol_wat_snow_),
+        abs_tol_matric_(settings.abs_tol_matric_),
+        abs_tol_aquifr_(settings.abs_tol_aquifr_),
         attempts_left_(max_attempts), state_(gru_state::running) {};
 
   // Deconstructor
@@ -117,9 +102,6 @@ public:
 
   inline int getBeSteps() const { return be_steps_; }
 
-  inline bool getDefTol() const { return def_tol_; }
-
-  inline double getRelTol() const { return rel_tol_; }
   inline double getRelTolTempCas() const { return rel_tol_temp_cas_; }
   inline double getRelTolTempVeg() const { return rel_tol_temp_veg_; }
   inline double getRelTolWatVeg() const { return rel_tol_wat_veg_; }
@@ -128,9 +110,6 @@ public:
   inline double getRelTolMatric() const { return rel_tol_matric_; }
   inline double getRelTolAquifr() const { return rel_tol_aquifr_; }
 
-  inline double getAbsTol() const { return abs_tol_; }
-  inline double getAbsTolWat() const { return abs_tolWat_; }
-  inline double getAbsTolNrg() const { return abs_tolNrg_; }
   inline double getAbsTolTempCas() const { return abs_tol_temp_cas_; }
   inline double getAbsTolTempVeg() const { return abs_tol_temp_veg_; }
   inline double getAbsTolWatVeg() const { return abs_tol_wat_veg_; }
@@ -150,7 +129,6 @@ public:
   // Setting rel_tol will set all rel_tol_* to the same value
   inline void setRelTol(double rel_tol)
   {
-    rel_tol_ = rel_tol;
     rel_tol_temp_cas_ = rel_tol;
     rel_tol_temp_veg_ = rel_tol;
     rel_tol_temp_soil_snow_ = rel_tol;
@@ -169,7 +147,6 @@ public:
 
   inline void setAbsTol(double abs_tol)
   {
-    abs_tol_ = abs_tol;
     abs_tol_temp_cas_ = abs_tol;
     abs_tol_temp_veg_ = abs_tol;
     abs_tol_temp_soil_snow_ = abs_tol;
@@ -178,8 +155,17 @@ public:
     abs_tol_matric_ = abs_tol;
     abs_tol_aquifr_ = abs_tol;
   }
-  inline void setAbsTolWat(double abs_tolWat) { abs_tolWat_ = abs_tolWat; }
-  inline void setAbsTolNrg(double abs_tolNrg) { abs_tolNrg_ = abs_tolNrg; }
+  inline void setAbsTolWat(double abs_tolWat) {
+    abs_tol_wat_veg_ = abs_tolWat;
+    abs_tol_wat_snow_ = abs_tolWat;
+    abs_tol_matric_ = abs_tolWat;
+    abs_tol_aquifr_ = abs_tolWat;
+  }
+  inline void setAbsTolNrg(double abs_tolNrg) {
+    abs_tol_temp_cas_ = abs_tolNrg;
+    abs_tol_temp_veg_ = abs_tolNrg;
+    abs_tol_temp_soil_snow_ = abs_tolNrg;
+  }
   inline void setAbsTolTempCas(double tol) { abs_tol_temp_cas_ = tol; }
   inline void setAbsTolTempVeg(double tol) { abs_tol_temp_veg_ = tol; }
   inline void setAbsTolWatVeg(double tol) { abs_tol_wat_veg_ = tol; }

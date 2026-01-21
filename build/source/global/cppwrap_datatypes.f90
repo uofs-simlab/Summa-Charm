@@ -3,7 +3,7 @@ module cppwrap_datatypes
 
 use, intrinsic :: iso_c_binding
 use data_types
-use chare_data_types
+use actor_data_types
 
 implicit none
   
@@ -2698,3 +2698,4 @@ subroutine delete_handle_gru_type(handle) bind(C, name="delete_handle_gru_type")
 end subroutine delete_handle_gru_type
 
 end module cppwrap_datatypes
+

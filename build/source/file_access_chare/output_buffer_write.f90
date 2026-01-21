@@ -13,7 +13,7 @@ module output_buffer_write
   USE output_buffer,only:outputTimeStep
 
   USE data_types
-  USE chare_data_types
+  USE actor_data_types
   ! vector lengths
   USE var_lookup, only: maxvarFreq ! number of output frequencies
   USE var_lookup, only: maxvarStat ! number of statistics

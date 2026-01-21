@@ -56,7 +56,7 @@ module fileAccess_writeOutput
                       gru_hru_double,      & ! x%gru(:)%hru(:)%var(:)     (dp)
                       gru_hru_intVec,      & ! x%gru(:)%hru(:)%var(:)%dat (i4b)
                       gru_hru_doubleVec      ! x%gru(:)%hru(:)%var(:)%dat (dp)
-  USE chare_data_types,only:&
+  USE actor_data_types,only:&
                       time_dlength,          & ! var(:)%tim(:)%dat (dp)
                       time_i,                &
                       gru_hru_time_double,   &
@@ -549,6 +549,7 @@ subroutine writeScalar(ncid, outputTimestep, outputTimestepUpdate, nSteps, minGR
   integer(i4b)                      :: hru_counter=0
   integer(i4b)                      :: iStep=1                  ! counter for looping over nSteps
   integer(i4b)                      :: stepCounter=0            ! counter for the realVec
+  integer(i4b)                      :: maxStepCounter=0         ! counter for the realVec
   integer(i4b)                      :: iGRU,iHRU
   ! output array
   real(rkind)                       :: realVec(nHRUrun, nSteps)! real vector for all HRUs in the run domain
@@ -556,6 +557,7 @@ subroutine writeScalar(ncid, outputTimestep, outputTimestepUpdate, nSteps, minGR
 
   err=0; message="writeOutput.f90-writeScalar/"
   realVec = realMissing
+  maxStepCounter = 0
 
   select type(stat)
     class is (gru_hru_time_doubleVec)
@@ -582,28 +584,15 @@ subroutine writeScalar(ncid, outputTimestep, outputTimestepUpdate, nSteps, minGR
             realVec(hru_counter, stepCounter) = val
             outputTimeStepUpdate(iFreq) = stepCounter
           end do ! iStep
+          ! We need to output the farthest time step achieved within the batch
+          if (stepCounter .gt. maxStepCounter) maxStepCounter = stepCounter
         end do ! iHRU
       end do ! iGRU 
 
-      if (outputTimeStepUpdate(iFreq) /= stepCounter ) then
-        print*, "ERROR Missmatch in Steps - stat doubleVec"
-        print*, "   outputTimeStepUpdate(iFreq) = ", outputTimeStepUpdate(iFreq)
-        print*, "   outputTimestep(iFreq) = ", outputTimestep(iFreq)
-        print*, "   stepCounter = ", stepCounter
-        print*, "   iFreq = ", iFreq
-        print*, "   minGRU = ", minGRU
-        print*, "   maxGRU = ", maxGRU
-        print*, "   nSteps = ", nSteps
-        print*, "   gruCounter = ", gruCounter
-        print*, "   hru_counter = ", hru_counter
-        print*, "   iStep = ", iStep
-        err = 20
-        return
-      endif
       err = nf90_put_var(ncid%var(iFreq),meta(iVar)%ncVarID(iFreq),&
                          realVec(1:hru_counter, 1:stepCounter),    &
                          start=(/minGRU,outputTimestep(iFreq)/),   & 
-                         count=(/nHRUrun,stepCounter/))
+                         count=(/nHRUrun,maxStepCounter/))
       if(err/=0)then
         print*, trim(nf90_strerror(err))
         print *, "Variable: ", trim(meta(iVar)%varName)
