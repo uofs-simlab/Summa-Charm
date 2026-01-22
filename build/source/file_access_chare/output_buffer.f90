@@ -4,7 +4,7 @@ module output_buffer
   USE globalData,only:integerMissing      ! missing integer value
   USE globalData,only:realMissing         ! missing double precision value
   USE data_types
-  USE actor_data_types
+  USE chare_data_types
   implicit none
   public::f_defOutput
   public::f_setChunkSize
