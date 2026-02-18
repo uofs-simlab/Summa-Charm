@@ -2698,4 +2698,3 @@ subroutine delete_handle_gru_type(handle) bind(C, name="delete_handle_gru_type")
 end subroutine delete_handle_gru_type
 
 end module cppwrap_datatypes
-

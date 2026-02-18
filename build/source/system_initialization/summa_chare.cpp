@@ -75,11 +75,8 @@ SummaChare::SummaChare(int start_gru, int num_gru, std::string config_file,
     return;
   }
 
-  CkPrintf("Log directory created: %s\n", log_folder_.c_str());
-
   batch_container_ = std::make_unique<BatchContainer>(start_gru_, num_gru_,
     summa_chare_settings_.max_gru_per_job_, log_folder_);
-  CkPrintf("\n\nStarting SUMMA Chare with %d Batches\n\n", batch_container_->getBatchesRemaining());
 
   if (spawnJob() != 0) {
     CkPrintf("ERROR--Summa_Chare: Unable To Spawn Job\n");
@@ -129,13 +126,12 @@ void SummaChare::reportError(int err_code, const std::string err_msg) {
 int SummaChare::spawnJob() {
   std::optional<Batch> batch = batch_container_->getUnsolvedBatch();
   if (!batch.has_value()) {
-    CkPrintf("No more batches to process. Finalizing...\n");
     return -1;
   }
   current_batch_ = std::make_shared<Batch>(batch.value());
   current_job_ = CProxy_JobChare::ckNew(
       batch.value(), summa_chare_settings_.enable_logging_, job_chare_settings_,
-      fa_chare_settings_, hru_chare_settings_, thisProxy.ckGetChareID());
+      fa_chare_settings_, hru_chare_settings_, thisProxy.ckGetChareID(), 0);  // Force creation on PE 0
   return 0;
 }
 

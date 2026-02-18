@@ -93,7 +93,7 @@ const int OutputBuffer::writeOutputDA(const int output_step) {
 }
 
 const std::optional<WriteOutputReturn*> OutputBuffer::writeOutput(
-    int index_gru, CkChareID gru) {
+    int index_gru, int gru_job_index) {
   int partition_index = findPartitionIndex(index_gru);
   if (partition_index == -1) {
     std::cout << "Error: FileAccessChare -- addFailedGRU: "
@@ -102,7 +102,7 @@ const std::optional<WriteOutputReturn*> OutputBuffer::writeOutput(
   }
   // Will write if the partition is full
   // TODO: This is a bit of a hack, the handle_ncid should be a shared pointer
-  return partitions_[partition_index]->writeOutput(gru, handle_ncid_.get());
+  return partitions_[partition_index]->writeOutput(gru_job_index, handle_ncid_.get());
 }
 
 const std::optional<WriteOutputReturn*> OutputBuffer::addFailedGRU(int index) {
@@ -154,8 +154,8 @@ int OutputBuffer::reconstruct() {
 // OutputPartition
 // ****************************************************************************
 const std::optional<WriteOutputReturn*> OutputPartition::writeOutput(
-    CkChareID gru, void* handle_ncid) {
-  ready_to_write_.push_back(gru);
+    int gru_job_index, void* handle_ncid) {
+  ready_to_write_.push_back(gru_job_index);
   if (ready_to_write_.size() == num_gru_ && ready_to_write_.size() > 0) {
     // Write the output
     int err = 0;
@@ -173,7 +173,7 @@ const std::optional<WriteOutputReturn*> OutputPartition::writeOutput(
 
     write_status_.err = err;
     write_status_.message = message.get();
-    write_status_.chare_to_update = ready_to_write_;
+    write_status_.job_indices_to_update = ready_to_write_;
     write_status_.num_steps_update = num_steps_buffer_;
 
     // Reset the partition for the next set of writes
@@ -203,7 +203,7 @@ const std::optional<WriteOutputReturn*> OutputPartition::writeOutput(
 
     write_status_.err = err;
     write_status_.message = message.get();
-    write_status_.chare_to_update = ready_to_write_;
+    write_status_.job_indices_to_update = ready_to_write_;
     write_status_.num_steps_update = num_steps_buffer_;
 
     // Reset the partition for the next set of writes

@@ -2,6 +2,10 @@
 #include "JobChare.decl.h"
 #include "FileAccessChare.decl.h"
 
+// Migration constructor - required for Charm++ array elements
+// This will not actually be used since we don't enable load balancing
+GruChare::GruChare(CkMigrateMessage *msg) {}
+
 GruChare::GruChare(int netcdf_index, int job_index,
                    int num_steps, HRUChareSettings hru_chare_settings, 
                    int num_output_steps,
@@ -39,9 +43,9 @@ GruChare::GruChare(int netcdf_index, int job_index,
         CkPrintf("GRU Chare: Error reading GRU restart -- %s\n", message.get());
         return;
     }
-
+    
     f_setGruTolerances(gru_data_.get(), tolerance_settings_.be_steps_,
-                       // Relative Tolerances
+                       // Relative Tolerances  
                        tolerance_settings_.rel_tol_temp_cas_,
                        tolerance_settings_.rel_tol_temp_veg_,
                        tolerance_settings_.rel_tol_wat_veg_,
@@ -54,10 +58,9 @@ GruChare::GruChare(int netcdf_index, int job_index,
                        tolerance_settings_.abs_tol_wat_veg_,
                        tolerance_settings_.abs_tol_temp_soil_snow_,
                        tolerance_settings_.abs_tol_wat_snow_,
-                       tolerance_settings_.abs_tol_matric_,
-                       tolerance_settings_.abs_tol_aquifr_);
-
-    // // TODO: Implement data assimilation mode if needed
+                       tolerance_settings_.abs_tol_matric_, tolerance_settings_.abs_tol_aquifr_);
+                       
+    CProxy_JobChare(parent_).notifyGruConstructed(job_index_);
 }
 
 void GruChare::newForcingFile(int num_forc_steps, int iFile)
@@ -73,7 +76,7 @@ void GruChare::newForcingFile(int num_forc_steps, int iFile)
         return;
     }
     forcingStep_ = 1;
-    thisProxy.runHRU();
+    thisProxy[thisIndex].runHRU();
 }
 
 void GruChare::setNumStepsBeforeWrite(int num_steps)
@@ -85,7 +88,23 @@ void GruChare::setNumStepsBeforeWrite(int num_steps)
 void GruChare::runHRU()
 {
     int err = 0;
+    int y, m, h, d;
     std::unique_ptr<char[]> message(new char[256]);
+    // if (!logged_tols_ && timestep_ == 1) {
+    //     logged_tols_ = true;
+    //     CkPrintf("GRU Chare %d tolerances: be_steps=%d "
+    //              "rel=[cas=%g veg=%g wat_veg=%g soil_snow=%g wat_snow=%g matric=%g aquifr=%g] "
+    //              "abs=[cas=%g veg=%g wat_veg=%g soil_snow=%g wat_snow=%g matric=%g aquifr=%g]\n",
+    //              job_index_, tolerance_settings_.be_steps_,
+    //              tolerance_settings_.rel_tol_temp_cas_, tolerance_settings_.rel_tol_temp_veg_,
+    //              tolerance_settings_.rel_tol_wat_veg_, tolerance_settings_.rel_tol_temp_soil_snow_,
+    //              tolerance_settings_.rel_tol_wat_snow_, tolerance_settings_.rel_tol_matric_,
+    //              tolerance_settings_.rel_tol_aquifr_,
+    //              tolerance_settings_.abs_tol_temp_cas_, tolerance_settings_.abs_tol_temp_veg_,
+    //              tolerance_settings_.abs_tol_wat_veg_, tolerance_settings_.abs_tol_temp_soil_snow_,
+    //              tolerance_settings_.abs_tol_wat_snow_, tolerance_settings_.abs_tol_matric_,
+    //              tolerance_settings_.abs_tol_aquifr_);
+    // }
     if (timestep_ > num_steps_)
     {
         doneHRU();
@@ -95,7 +114,7 @@ void GruChare::runHRU()
     {
         if (forcingStep_ > stepsInCurrentFFile_)
         {
-            CProxy_FileAccessChare(file_access_chare_).accessForcing(iFile_ + 1, thisProxy.ckGetChareID());
+            CProxy_FileAccessChare(file_access_chare_).accessForcing(iFile_ + 1, job_index_);
             break;
         }
         num_steps_until_write_--;
@@ -136,12 +155,17 @@ void GruChare::runHRU()
 
         if (timestep_ > num_steps_)
             break;
+        
+        current_time.y = y;
+        current_time.m = m;
+        current_time.d = d;
+        current_time.h = h;
     }
 
     // Our output structure is full
     if (num_steps_until_write_ <= 0)
     {
-        CProxy_FileAccessChare(file_access_chare_).writeOutput(job_index_, thisProxy.ckGetChareID());
+        CProxy_FileAccessChare(file_access_chare_).writeOutput(job_index_, job_index_);
     }
 }
 
@@ -164,9 +188,6 @@ void GruChare::handleErr(int err, std::unique_ptr<char[]> &message)
 
 void GruChare::updateHRU()
 {
-    int output_steps = CProxy_FileAccessChare(file_access_chare_).getNumOutputSteps(job_index_);
-    num_steps_until_write_ = output_steps;
-    CProxy_FileAccessChare(file_access_chare_).accessForcing(iFile_, thisProxy.ckGetChareID());
+    num_steps_until_write_ = num_steps_output_buffer_;
+    CProxy_FileAccessChare(file_access_chare_).accessForcing(iFile_, job_index_);
 }
-
-#include "GruChare.def.h"

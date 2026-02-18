@@ -1,6 +1,9 @@
 #include "mainChare.decl.h"
 #include "settings_functions.hpp"
 #include "summa_chare.hpp"
+#include "job_chare.hpp"
+#include "gru_chare.hpp"
+#include "file_access_chare.hpp"
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -76,8 +79,6 @@ public:
       }
     }
 
-    CkPrintf("Starting SUMMA-Chares");
-
     Settings settings = Settings(config_file);
     if (generate_config) {
       settings.generateConfigFile();
@@ -98,7 +99,6 @@ public:
     }
 
     // start the SummaChare with the given settings
-    CkPrintf("Now we can spawn the SummaChare.\n");
     CProxy_SummaChare summaChareProxy = CProxy_SummaChare::ckNew(
         startGRU, countGRU, config_file, master_file, output_file_suffix);
 
@@ -107,10 +107,12 @@ public:
 
   // Entry method called when simulation is complete
   void done() {
-    CkPrintf("Main: Simulation completed successfully!\n");
     CkExit();
   }
 };
 
 #include "mainChare.def.h"
 #include "SummaChare.def.h"
+#include "JobChare.def.h"
+#include "GruChare.def.h"
+#include "FileAccessChare.def.h"

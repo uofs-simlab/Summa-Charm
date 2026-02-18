@@ -5,6 +5,7 @@
 
 // Include Charm++ generated headers (first, to resolve forward references)
 #include "FileAccessChare.decl.h"
+#include "GruChare.decl.h"
 
 // Regular includes
 #include <memory>
@@ -59,13 +60,13 @@ public:
 
   int initFileAccessChare(const int file_gru, int num_hru);
   int getNumOutputSteps(int job_index);
-  void accessForcing(int i_file, CkChareID gru_chare);
+  void accessForcing(int i_file, int gru_job_index);
   void runFailure(int index_gru_job);
   std::tuple<double, double> finalize();
   void error(int err_code, std::string err_msg);
   int restartFailures();
   void accessForcingInternal(int i_file);
-  void writeOutput(int index_gru, CkChareID gru_chare);
+  void writeOutput(int index_gru, int gru_job_index);
   void writeRestartOutput(int gru, int gru_timestep, int gru_checkpoint,
                           int output_structure_index, int year, int month, int day, int hour);
 };

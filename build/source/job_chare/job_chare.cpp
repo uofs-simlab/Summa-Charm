@@ -20,8 +20,6 @@ JobChare::JobChare(Batch batch, bool enable_logging,
       hru_chare_settings_(hru_chare_settings)
 {
   std::string err_msg;
-  CkPrintf("JobChare: Started\n");
-
   // Get hostname for logging
   gethostname(hostname_, HOST_NAME_MAX);
 
@@ -117,7 +115,6 @@ JobChare::JobChare(Batch batch, bool enable_logging,
 
   // Start JobChare in User Selected Mode
   logger_->log("JobChare Initialized");
-  CkPrintf("JobChare Initialized: Running %d Steps\n", num_timesteps);
   logger_->log("Async Mode: File Access Chare Ready");
 
   // TODO: Implement the data assimilation mode logic if needed
@@ -128,28 +125,52 @@ JobChare::JobChare(Batch batch, bool enable_logging,
 // ------------------------ Member Functions ------------------------
 void JobChare::spawnGruChares()
 {
-  CkPrintf("JobChare: Spawning GRU Chares\n");
-  // Tolerance values are already set in tolerance_settings_ - no need to copy them
-
+  int num_grus = gru_struc_->getNumGru();
+  total_gru_to_construct_ = num_grus;
+  num_gru_constructed_ = 0;
   CkChareID fileAccessChareID = file_access_chare_.ckGetChareID();
-
-  CkPrintf("JobChare: NumGRU = %d\n", gru_struc_->getNumGru());
-
-  for (int i = 0; i < gru_struc_->getNumGru(); i++)
+  
+  // Create empty array first (do not pre-populate elements)
+  gru_chare_array_ = CProxy_GruChare::ckNew();
+  
+  // Insert each element with EXACT same parameters as individual chares
+  for (int i = 0; i < num_grus; i++)
   {
     auto netcdf_index = gru_struc_->getStartGru() + i;
     auto job_index = i + 1;
 
-    CProxy_GruChare gru_chare_proxy =
-        CProxy_GruChare::ckNew(netcdf_index, job_index, num_steps_, hru_chare_settings_,
-                               fa_chare_settings_.num_timesteps_in_output_buffer_, fileAccessChareID, thisProxy.ckGetChareID(), tolerance_settings_);
+    // Insert with exact same parameters as working individual chares
+    gru_chare_array_[i].insert(netcdf_index, job_index, num_steps_, hru_chare_settings_,
+                               fa_chare_settings_.num_timesteps_in_output_buffer_, 
+                               fileAccessChareID, thisProxy.ckGetChareID(), tolerance_settings_);
+    
+    // Create GRU tracking object exactly like original
+    CkChareID dummy_chare_id; 
+    memset(&dummy_chare_id, 0, sizeof(CkChareID));
     std::unique_ptr<GRU> gru_obj = std::make_unique<GRU>(
-        netcdf_index, job_index, gru_chare_proxy.ckGetChareID(), dt_init_factor_, tolerance_settings_,
+        netcdf_index, job_index, dummy_chare_id, dt_init_factor_, tolerance_settings_,
         default_tol_, job_chare_settings_.max_run_attempts_);
     gru_struc_->addGRU(std::move(gru_obj));
-    gru_chare_proxy.updateHRU();
   }
+  
+  // Finalize manual insertion before sending any entry methods
+  gru_chare_array_.doneInserting();
+
   gru_struc_->decrementRetryAttempts();
+}
+
+void JobChare::notifyGruConstructed(int job_index)
+{
+  (void)job_index;
+  num_gru_constructed_++;
+
+  if (num_gru_constructed_ == total_gru_to_construct_)
+  {
+    for (int i = 0; i < total_gru_to_construct_; i++)
+    {
+      gru_chare_array_[i].updateHRU();
+    }
+  }
 }
 
 // Implementation method for finalization
@@ -160,20 +181,7 @@ void JobChare::finalizeJob()
            std::get<0>(read_write_duration), std::get<1>(read_write_duration));
   int err = 0;
   int num_failed_grus = gru_struc_->getNumGruFailed();
-  CkPrintf("JobChare: Finalizing job with %d failed GRUs\n", num_failed_grus);
   timing_info_.updateEndPoint("total_duration");
-  CkPrintf(
-      "\n_____________PRINTING JOB_CHARE TIMING INFO RESULTS____________\n"
-  "Total Duration = %f Seconds\n"
-  "Total Duration = %f Minutes\n"
-  "Total Duration = %f Hours\n"
-  "Job Init Duration = %f Seconds\n"
-  "_________________________________________________________________\n\n",
-  timing_info_.getDuration("total_duration").value_or(-1.0),
-  timing_info_.getDuration("total_duration").value_or(-1.0) / 60,
-  (timing_info_.getDuration("total_duration").value_or(-1.0) / 60) / 60,
-  timing_info_.getDuration("init_duration").value_or(-1.0));
-
 
   // Deallocate GRU_Struc
   summa_init_struc_.reset();
@@ -183,8 +191,6 @@ void JobChare::finalizeJob()
   double read_duration = std::get<0>(read_write_duration);
   double write_duration = std::get<1>(read_write_duration);
   CProxy_SummaChare(summa_chare_proxy_).doneJob(num_failed_grus, total_duration, read_duration, write_duration);
-
-  CkPrintf("JobChare: Finalized successfully\n");
 }
 
 void JobChare::doneHRUJob(int job_index)
@@ -194,8 +200,19 @@ void JobChare::doneHRUJob(int job_index)
 
 void JobChare::handleFinishedGRU(int job_index)
 {
+  if (!gru_struc_) {
+    return;
+  }
+  auto *gru = gru_struc_->getGRU(job_index);
+  if (!gru) {
+    return;
+  }
+  if (gru->getStatus() == gru_state::failed ||
+      gru->getStatus() == gru_state::succeeded) {
+    return;
+  }
   gru_struc_->incrementNumGruDone();
-  gru_struc_->getGRU(job_index)->setSuccess();
+  gru->setSuccess();
   success_logger_->logSuccess(gru_struc_->getGRU(job_index)->getIndexNetcdf(),
                               gru_struc_->getGRU(job_index)->getIndexJob(),
                               MISSING_DOUBLE, MISSING_DOUBLE,  // Using default rel_tol and abs_tol values
@@ -225,14 +242,14 @@ void JobChare::handleFinishedGRU(int job_index)
 void JobChare::restartFailures()
 {
   logger_->log("Async Mode: Restarting Failed GRUs");
-  CkPrintf("Async Mode: Restarting Failed GRUs\n");
+  // CkPrintf("Async Mode: Restarting Failed GRUs\n");
 
   
       auto tighten_tol = [&](double& tol, const double& min_tol, const std::string& name){
         if (tol > min_tol) {
           tol /= 10;
-          CkPrintf("Async Mode: Tightening tolerance\n");
-          CkPrintf("Async Mode: %s = %f\n", name.c_str(), tol);
+          // CkPrintf("Async Mode: Tightening tolerance\n");
+          // CkPrintf("Async Mode: %s = %f\n", name.c_str(), tol);
           return true;
         }
         return false;
@@ -242,7 +259,7 @@ void JobChare::restartFailures()
       bool tol_updated = false;
 
       tolerance_settings_.be_steps_ = tolerance_settings_.be_steps_ * 2;
-      CkPrintf("Async Mode: Tightening be steps: %d\n", tolerance_settings_.be_steps_);
+      // CkPrintf("Async Mode: Tightening be steps: %d\n", tolerance_settings_.be_steps_);
       
       tol_updated |= tighten_tol(tolerance_settings_.rel_tol_temp_cas_, MIN_REL_TOL, "rel_tol_temp_cas_");
 
@@ -282,22 +299,31 @@ void JobChare::restartFailures()
   while (gru_struc_->getNumGruFailed() > 0)
   {
     int job_index = gru_struc_->getFailedIndex();
+    if (job_index < 1) {
+      // CkPrintf("Async Mode: No failed GRU index found, breaking.\n");
+      break;
+    }
     logger_->log("Async Mode: Restarting GRU: " +
                  std::to_string(job_index));
-    CkPrintf("Async Mode: Restarting GRU: %s", std::to_string(job_index).c_str());
-    int netcdf_index = job_index + gru_struc_->getStartGru() - 1;
-    CkChareID fileAccessChareID = file_access_chare_.ckGetChareID();
-    CProxy_GruChare gru_chare_proxy =
-        CProxy_GruChare::ckNew(netcdf_index, job_index, num_steps_, hru_chare_settings_,
-                               fa_chare_settings_.num_timesteps_in_output_buffer_, fileAccessChareID, thisProxy.ckGetChareID(), tolerance_settings_);
+    // CkPrintf("Async Mode: Restarting GRU: %s", std::to_string(job_index).c_str());
+    if (auto *gru = gru_struc_->getGRU(job_index)) {
+      gru->setRestarted();
+    }
+    // For array chares, we just restart the existing array element
+    gru_chare_array_[job_index - 1].updateHRU();
     gru_struc_->decrementNumGruFailed();
-    std::unique_ptr<GRU> gru_obj = std::make_unique<GRU>(
-        netcdf_index, job_index, gru_chare_proxy.ckGetChareID(), dt_init_factor_, tolerance_settings_,
-        default_tol_, job_chare_settings_.max_run_attempts_);
-    gru_struc_->addGRU(std::move(gru_obj));
-    gru_chare_proxy.updateHRU();
   }
   gru_struc_->decrementRetryAttempts();
+}
+
+// Array communication forwarding methods
+void JobChare::forwardNewForcingFile(int job_index, int num_forc_steps, int iFile) {
+  gru_chare_array_[job_index - 1].newForcingFile(num_forc_steps, iFile);
+}
+
+void JobChare::forwardSetNumStepsBeforeWrite(int job_index, int num_steps) {
+  gru_chare_array_[job_index - 1].setNumStepsBeforeWrite(num_steps);
+  gru_chare_array_[job_index - 1].runHRU();
 }
 
 void JobChare::handleGruChareError(int job_index, int timestep, int err_code,
@@ -310,7 +336,18 @@ void JobChare::handleGruChareError(int job_index, int timestep, int err_code,
 void JobChare::handleGRUError(int err_code, int job_index, int timestep,
                               std::string err_msg)
 {
-  gru_struc_->getGRU(job_index)->setFailed();
+  if (!gru_struc_) {
+    return;
+  }
+  auto *gru = gru_struc_->getGRU(job_index);
+  if (!gru) {
+    return;
+  }
+  if (gru->getStatus() == gru_state::failed ||
+      gru->getStatus() == gru_state::succeeded) {
+    return;
+  }
+  gru->setFailed();
   gru_struc_->incrementNumGruFailed();
   file_access_chare_.runFailure(job_index);
   if (gru_struc_->isDone())
@@ -330,5 +367,3 @@ void JobChare::handleFileAccessError(int err_code, std::string err_msg)
     return;
   }
 }
-
-#include "JobChare.def.h"

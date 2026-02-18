@@ -12,7 +12,9 @@ find_path(CHARM_INCLUDE_DIR
     NAMES charm++.h charm.h
     HINTS
         ${CHARM_ROOT}/include
+        ${CMAKE_SOURCE_DIR}/../utils/dependencies/install/charmppNEW/include
         ${CMAKE_SOURCE_DIR}/../utils/dependencies/install/charmpp/include
+        ${CMAKE_SOURCE_DIR}/utils/dependencies/install/charmppNEW/include
         ${CMAKE_SOURCE_DIR}/utils/dependencies/install/charmpp/include
         ENV CHARM_HOME
     PATH_SUFFIXES include
@@ -21,7 +23,9 @@ find_path(CHARM_INCLUDE_DIR
 
 find_program(CHARM_CHARMC
     NAMES charmc
-    HINTS
+    HINTSNEW/bin
+        ${CMAKE_SOURCE_DIR}/../utils/dependencies/install/charmpp/bin
+        ${CMAKE_SOURCE_DIR}/utils/dependencies/install/charmppNEW
         ${CHARM_ROOT}/bin
         ${CMAKE_SOURCE_DIR}/../utils/dependencies/install/charmpp/bin
         ${CMAKE_SOURCE_DIR}/utils/dependencies/install/charmpp/bin
@@ -34,7 +38,9 @@ find_program(CHARM_CHARMRUN
     NAMES charmrun
     HINTS
         ${CHARM_ROOT}/bin
+        ${CMAKE_SOURCE_DIR}/../utils/dependencies/install/charmppNEW/bin
         ${CMAKE_SOURCE_DIR}/../utils/dependencies/install/charmpp/bin
+        ${CMAKE_SOURCE_DIR}/utils/dependencies/install/charmppNEW/bin
         ${CMAKE_SOURCE_DIR}/utils/dependencies/install/charmpp/bin
         ENV CHARM_HOME
     PATH_SUFFIXES bin
@@ -45,7 +51,9 @@ find_library(CHARM_CK_LIBRARY
     NAMES ck libck.a
     HINTS
         ${CHARM_ROOT}/lib
+        ${CMAKE_SOURCE_DIR}/../utils/dependencies/install/charmppNEW/lib
         ${CMAKE_SOURCE_DIR}/../utils/dependencies/install/charmpp/lib
+        ${CMAKE_SOURCE_DIR}/utils/dependencies/install/charmppNEW/lib
         ${CMAKE_SOURCE_DIR}/utils/dependencies/install/charmpp/lib
         ENV CHARM_HOME
     PATH_SUFFIXES lib
@@ -56,11 +64,40 @@ find_library(CHARM_CONVERSE_LIBRARY
     NAMES converse libconverse.a
     HINTS
         ${CHARM_ROOT}/lib
+        ${CMAKE_SOURCE_DIR}/../utils/dependencies/install/charmppNEW/lib
         ${CMAKE_SOURCE_DIR}/../utils/dependencies/install/charmpp/lib
+        ${CMAKE_SOURCE_DIR}/utils/dependencies/install/charmppNEW/lib
         ${CMAKE_SOURCE_DIR}/utils/dependencies/install/charmpp/lib
         ENV CHARM_HOME
     PATH_SUFFIXES lib
     DOC "Charm++ converse library"
+)
+
+find_library(CHARM_TRACE_PROJECTIONS_LIBRARY
+    NAMES trace-projections libtrace-projections.a
+    HINTS
+        ${CMAKE_SOURCE_DIR}/utils/dependencies/install/charmppNEW/lib
+        ${CMAKE_SOURCE_DIR}/../utils/dependencies/install/charmpp/lib
+        ${CMAKE_SOURCE_DIR}/utils/dependencies/install/charmppNEW/lib
+        ${CHARM_ROOT}/lib
+        ${CMAKE_SOURCE_DIR}/../utils/dependencies/install/charmpp/lib
+        ${CMAKE_SOURCE_DIR}/utils/dependencies/install/charmpp/lib
+        ENV CHARM_HOME
+    PATH_SUFFIXES lib
+    DOC "Charm++ trace-projections library for profiling"
+)
+
+find_library(CHARM_TREELB_LIBRARY
+    NAMES moduleTreeLB libmoduleTreeLB.a
+    HINTS
+        ${CMAKE_SOURCE_DIR}/utils/dependencies/install/charmppNEW/lib
+        ${CMAKE_SOURCE_DIR}/../utils/dependencies/install/charmppNEW/lib
+        ${CHARM_ROOT}/lib
+        ${CMAKE_SOURCE_DIR}/../utils/dependencies/install/charmpp/lib
+        ${CMAKE_SOURCE_DIR}/utils/dependencies/install/charmpp/lib
+        ENV CHARM_HOME
+    PATH_SUFFIXES lib
+    DOC "Charm++ TreeLB module library (required for GreedyLB, RefineLB, etc.)"
 )
 
 # Extract Charm++ version if possible
@@ -81,6 +118,18 @@ endif()
 set(CHARM_INCLUDE_DIRS ${CHARM_INCLUDE_DIR})
 set(CHARM_LIBRARIES ${CHARM_CK_LIBRARY} ${CHARM_CONVERSE_LIBRARY})
 
+# Add trace-projections library if found (optional for profiling)
+if(CHARM_TRACE_PROJECTIONS_LIBRARY)
+    list(APPEND CHARM_LIBRARIES ${CHARM_TRACE_PROJECTIONS_LIBRARY})
+    message(STATUS "Charm++ trace-projections library found: ${CHARM_TRACE_PROJECTIONS_LIBRARY}")
+endif()
+
+# Add TreeLB module library if found (required for GreedyLB, RefineLB, etc.)
+if(CHARM_TREELB_LIBRARY)
+    list(APPEND CHARM_LIBRARIES ${CHARM_TREELB_LIBRARY})
+    message(STATUS "Charm++ TreeLB module library found: ${CHARM_TREELB_LIBRARY}")
+endif()
+
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Charm
     FOUND_VAR CHARM_FOUND
@@ -97,6 +146,7 @@ mark_as_advanced(
     CHARM_INCLUDE_DIR
     CHARM_CK_LIBRARY
     CHARM_CONVERSE_LIBRARY
+    CHARM_TRACE_PROJECTIONS_LIBRARY
     CHARM_CHARMC
     CHARM_CHARMRUN
 )

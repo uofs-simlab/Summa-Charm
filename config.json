@@ -1,6 +1,6 @@
 {
   "Summa_Chare": {
-    "max_gru_per_job": 2000
+    "max_gru_per_job": 4000
   },
   "File_Access_Chare": {
     "num_partitions_in_output_buffer": 32,

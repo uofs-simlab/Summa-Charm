@@ -10,9 +10,6 @@ FileAccessChare::FileAccessChare(NumGRUInfo num_gru_info,
     : CBase_FileAccessChare(), num_gru_info_(num_gru_info),
       fa_settings_(fa_settings), job_chare_proxy_(job_chare_proxy)
 {
-
-  CkPrintf("\n----------File_Access_Chare Started----------\n");
-
   // Timing Info
   timing_info_ = TimingInfo();
   timing_info_.addTimePoint("write_duration");
@@ -33,7 +30,6 @@ FileAccessChare::FileAccessChare(NumGRUInfo num_gru_info,
 int FileAccessChare::initFileAccessChare(int file_gru, int num_hru)
 {
   int err = 0;
-  CkPrintf("File Access Chare: Initializing\n");
   num_hru_ = num_hru;
   f_getNumTimeSteps(num_steps_);
   forcing_files_ = std::make_unique<forcingFileContainer>();
@@ -44,7 +40,6 @@ int FileAccessChare::initFileAccessChare(int file_gru, int num_hru)
   output_buffer_ = std::make_unique<OutputBuffer>(
       fa_settings_, num_gru_info_, num_hru_, num_steps_);
   int chunk_return = output_buffer_->setChunkSize();
-  CkPrintf("Chunk Size = %d\n", chunk_return);
   err = output_buffer_->defOutput(std::to_string(thishandle.onPE));
 
   // err = output_buffer_->defOutput("FileAccessChare");
@@ -61,11 +56,12 @@ int FileAccessChare::initFileAccessChare(int file_gru, int num_hru)
   return num_steps_;
 }
 
-void FileAccessChare::accessForcing(int i_file, CkChareID gru_chare)
+void FileAccessChare::accessForcing(int i_file, int gru_job_index)
 {
   if (forcing_files_->allFilesLoaded())
   {
-    CProxy_GruChare(gru_chare).newForcingFile(forcing_files_->getNumSteps(i_file), i_file);
+    // Ask JobChare to forward the message to the GRU array
+    CProxy_JobChare(job_chare_proxy_).forwardNewForcingFile(gru_job_index, forcing_files_->getNumSteps(i_file), i_file);
     return;
   }
   auto err = forcing_files_->loadForcingFile(i_file, start_gru_, num_gru_);
@@ -80,7 +76,7 @@ void FileAccessChare::accessForcing(int i_file, CkChareID gru_chare)
 
   // Load files behind the scenes
   accessForcingInternal(i_file + 1);
-  CProxy_GruChare(gru_chare).newForcingFile(forcing_files_->getNumSteps(i_file), i_file);
+  CProxy_JobChare(job_chare_proxy_).forwardNewForcingFile(gru_job_index, forcing_files_->getNumSteps(i_file), i_file);
 }
 
 void FileAccessChare::accessForcingInternal(int i_file)
@@ -103,11 +99,11 @@ int FileAccessChare::getNumOutputSteps(int job_index)
   return output_buffer_->getNumStepsBuffer(job_index);
 }
 
-void FileAccessChare::writeOutput(int index_gru, CkChareID gru_chare)
+void FileAccessChare::writeOutput(int index_gru, int gru_job_index)
 {
   timing_info_.updateStartPoint("write_duration");
 
-  auto update_status = output_buffer_->writeOutput(index_gru, gru_chare);
+  auto update_status = output_buffer_->writeOutput(index_gru, gru_job_index);
 
   // Do nothing if optional is emtpy
   if (!update_status.has_value())
@@ -126,10 +122,9 @@ void FileAccessChare::writeOutput(int index_gru, CkChareID gru_chare)
     return;
   }
 
-  for (auto gru : update_status.value()->chare_to_update)
+  for (auto job_index : update_status.value()->job_indices_to_update)
   {
-    CProxy_GruChare(gru).setNumStepsBeforeWrite(update_status.value()->num_steps_update);
-    CProxy_GruChare(gru).runHRU();
+    CProxy_JobChare(job_chare_proxy_).forwardSetNumStepsBeforeWrite(job_index, update_status.value()->num_steps_update);
   }
 
   timing_info_.updateEndPoint("write_duration");
@@ -185,10 +180,9 @@ void FileAccessChare::runFailure(int index_gru_job)
     return;
   }
 
-  for (auto gru : update_status.value()->chare_to_update)
+  for (auto gru_job_index : update_status.value()->job_indices_to_update)
   {
-    CProxy_GruChare(gru).setNumStepsBeforeWrite(update_status.value()->num_steps_update);
-    CProxy_GruChare(gru).runHRU();
+    CProxy_JobChare(job_chare_proxy_).forwardSetNumStepsBeforeWrite(gru_job_index, update_status.value()->num_steps_update);
   }
 
   timing_info_.updateEndPoint("write_duration");
@@ -218,5 +212,3 @@ void FileAccessChare::error(int err_code, std::string err_msg)
   CkPrintf("FileAccessChare: Error %d: %s\n", err_code, err_msg.c_str());
   // TODO: Implement error handling
 }
-
-#include "FileAccessChare.def.h"

@@ -36,7 +36,7 @@ extern "C" {
 struct WriteOutputReturn {
   int err;
   std::string message;
-  std::vector<CkChareID> chare_to_update;
+  std::vector<int> job_indices_to_update;
   int num_steps_update;
 };
 
@@ -51,7 +51,7 @@ class OutputPartition {
     int steps_remaining_;
     bool write_params_ = true;
 
-    std::vector<CkChareID> ready_to_write_;
+    std::vector<int> ready_to_write_; // Job indices ready to write
     WriteOutputReturn write_status_;
 
     inline const bool isReadyToWrite() {
@@ -77,7 +77,7 @@ class OutputPartition {
     inline void decrementNumGRU() { num_gru_--;};
 
     const std::optional<WriteOutputReturn*> writeOutput(
-        CkChareID gru, void* handle_ncid);
+        int gru_job_index, void* handle_ncid);
     const std::optional<WriteOutputReturn*> writeOutput(void* handle_ncid);
 
     bool isWriteParams();
@@ -153,7 +153,7 @@ class OutputBuffer {
     int allocateOutputBuffer(int num_timesteps);
     const std::optional<WriteOutputReturn*> addFailedGRU(int index_gru);
     const std::optional<WriteOutputReturn*> writeOutput(
-        int index_gru, CkChareID  gru);
+        int index_gru, int gru_job_index);
     const int writeOutputDA(const int output_step);
     int reconstruct();
     int findPartitionIndex(int index);

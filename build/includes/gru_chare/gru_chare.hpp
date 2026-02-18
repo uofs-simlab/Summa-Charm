@@ -43,10 +43,17 @@ extern "C"
 
 struct GruDeleter
 {
-    void operator()(void *ptr) const
+       void operator()(void *ptr) const
     {
         delete_handle_gru_type(ptr);
     }
+};
+
+struct Date {
+  int y;
+  int m;
+  int d;
+  int h;
 };
 
 class GruChare : public CBase_GruChare
@@ -64,21 +71,25 @@ class GruChare : public CBase_GruChare
 
     double dt_init_ = 0.0;
     int dt_init_factor_ = 1;
-    int num_steps_until_write_;
+    int num_steps_until_write_ = 0;
     int num_steps_ = 0; // number of time steps
     int timestep_ = 1;  // Current Timestep of HRU simulation
     int iFile_ = 1;
-    int stepsInCurrentFFile_; // number of time steps in current forcing file
+    int stepsInCurrentFFile_ = 0; // number of time steps in current forcing file
     int forcingStep_ = 1;     // index of current time step in current forcing file
     int output_step_ = 1;     // index of current time step in output structure
 
     bool data_assimilation_mode_ = false;
+    bool logged_tols_ = false;
+    Date current_time = {0,0,0,0};
+    Date start_time = {-1,-1,-1,-1};
 
 public:
     GruChare(int netcdf_index, int job_index,
              int num_steps, HRUChareSettings hru_chare_settings,
              int num_output_steps, CkChareID file_access_chare, CkChareID parent,
              ToleranceSettings tolerance_settings);
+    GruChare(CkMigrateMessage *msg);
     ~GruChare() {}
 
     void newForcingFile(int num_forc_steps, int iFile);

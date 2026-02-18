@@ -195,16 +195,25 @@ target_compile_options(summa PRIVATE ${FLAGS_ALL})
 target_link_libraries(summa PUBLIC ${EXT_TARGETS} SUMMA_NOAHMP SUMMA_COMM)
 
 # HAVE CMAKE INVOKE CHARM++ FOR THE LINK STEP
+# Add -module TreeLB to enable GreedyLB, RefineLB, and other TreeLB-based load balancers
+# 
+# TOGGLE TRACING: Uncomment one of the following lines:
+# 
+# For PROFILING with Projections (tracing enabled - use +traceroot at runtime):
 set(CMAKE_CXX_LINK_EXECUTABLE
-    "${CHARM_CHARMC} <FLAGS> -o <TARGET> <OBJECTS> <LINK_LIBRARIES>"
+    "${CHARM_CHARMC} -tracemode projections -module TreeLB <FLAGS> -o <TARGET> <OBJECTS> <LINK_LIBRARIES>"
 )
+#
+# For PRODUCTION/LOAD BALANCER TESTING (no tracing overhead):
+#set(CMAKE_CXX_LINK_EXECUTABLE
+#    "${CHARM_CHARMC} -module TreeLB <FLAGS> -o <TARGET> <OBJECTS> <LINK_LIBRARIES>"
+#)
 
 add_executable(${EXEC_NAME} ${MAIN_SUMMA} ${CHARES_GLOBAL} 
                ${FILE_ACCESS_CHARE} ${JOB_CHARE} ${GRU_CHARE} ${SYS_INIT})
 
 # Add dependency on charm interface generation
 add_dependencies(${EXEC_NAME} charm_interfaces)
-
 
 set_property(TARGET ${EXEC_NAME} PROPERTY LINKER_LANGUAGE CXX)
 target_compile_options(${EXEC_NAME} PUBLIC ${FLAGS_CXX})

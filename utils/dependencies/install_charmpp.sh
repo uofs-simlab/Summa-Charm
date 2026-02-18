@@ -19,4 +19,4 @@ tar xzf v8.0.0.tar.gz
 cd charm-8.0.0
 # ./build charm++ netlrts-linux-x86_64 --with-production -j8 --destination=$CHARMDIR
 
-./build charm++ netlrts-linux-x86_64 smp --with-production -j8 --destination=$CHARMDIR
+./build charm++ multicore-linux-x86_64 --with-production -j8 --destination=$CHARMDIR

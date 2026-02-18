@@ -82,37 +82,17 @@ subroutine f_readDimension(start_gru, num_gru, file_gru, file_hru, &
   ! read and set GRU dimensions
   ! **********************************************************************************************
   ! get gru dimension of whole file
-  err = nf90_inq_dimid(ncID, "gru", gruDimId)
-  if (err /= nf90_noerr) then
-    message = trim(message) // &
-              'problem finding gru dimension/' // &
-              trim(nf90_strerror(err))
-    return
-  end if
-  err = nf90_inquire_dimension(ncID, gruDimId, len = file_gru)
-  if (err /= nf90_noerr) then
-    message = trim(message)//'problem reading gru dimension/'// &
-              trim(nf90_strerror(err))
-    return
-  end if
+  err = nf90_inq_dimid(ncID,"gru",gruDimId);                   if(err/=nf90_noerr)then; message=trim(message)//'problem finding gru dimension/'//trim(nf90_strerror(err)); return; end if
+  err = nf90_inquire_dimension(ncID, gruDimId, len = file_gru); if(err/=nf90_noerr)then; message=trim(message)//'problem reading gru dimension/'//trim(nf90_strerror(err)); return; end if
 
   ! get hru dimension of whole file
-  err = nf90_inq_dimid(ncID,"hru",hruDimId)
-  if(err/=nf90_noerr)then
-    message=trim(message)//'problem finding hru dimension/'// &
-      trim(nf90_strerror(err))
-    return
-  end if
-  err = nf90_inquire_dimension(ncID, hruDimId, len = file_hru)
-  if(err/=nf90_noerr)then
-    message=trim(message)//'problem reading hru dimension/'// &
-      trim(nf90_strerror(err))
-    return
-  end if
+  err = nf90_inq_dimid(ncID,"hru",hruDimId);                   if(err/=nf90_noerr)then; message=trim(message)//'problem finding hru dimension/'//trim(nf90_strerror(err)); return; end if
+  err = nf90_inquire_dimension(ncID, hruDimId, len = file_hru); if(err/=nf90_noerr)then; message=trim(message)//'problem reading hru dimension/'//trim(nf90_strerror(err)); return; end if
 
   ! allocate space for GRU indices
   allocate(gru_id(file_gru))
   allocate(hru_ix(file_hru),hru_id(file_hru),hru2gru_id(file_hru))
+
   ! read gru_id from netcdf file
   err = nf90_inq_varid(ncID,"gruId",varID);     if (err/=0) then; message=trim(message)//'problem finding gruId'; return; end if
   err = nf90_get_var(ncID,varID,gru_id);        if (err/=0) then; message=trim(message)//'problem reading gruId'; return; end if
@@ -131,6 +111,7 @@ subroutine f_readDimension(start_gru, num_gru, file_gru, file_hru, &
   
   hru_ix=arth(1,1,file_hru)
   allocate(gru_struc(num_gru))
+
   if (err /= 0) then; call f_c_string_ptr(trim(message), message_r); end if
 end subroutine f_readDimension
 
@@ -157,9 +138,9 @@ subroutine f_setIndexMap() bind(C, name="f_setIndexMap")
   implicit none
   ! Local Variables
   integer                         :: iGRU
-  
+
   allocate(index_map(sum(gru_struc(:)%hruCount)))
-  
+
   do iGRU = 1,sum(gru_struc(:)%hruCount)
     index_map(gru_struc(iGRU)%hruInfo(:)%hru_ix)%gru_ix   = iGRU                                 ! index of gru in run domain to which the hru belongs
     index_map(gru_struc(iGRU)%hruInfo(:)%hru_ix)%localHRU_ix = hru_ix(1:gru_struc(iGRU)%hruCount)! index of hru within the gru
