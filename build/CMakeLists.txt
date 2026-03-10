@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 project(summa-charm++ VERSION 1.0.0 LANGUAGES Fortran C CXX)
 
 # Add options for build type
-set(CMAKE_CONFIGURATION_TYPES Release Debug)
+set(CMAKE_CONFIGURATION_TYPES Release RelWithDebInfo Debug)
 message("\nSelected Bulid Type: ${CMAKE_BUILD_TYPE}\n")
 
 # Optional Dependencies
@@ -79,12 +79,17 @@ endif()
 set(FLAGS_OPT $ENV{FLAGS_OPT}) # get optional user-specified flags from environment variables
 if(CMAKE_BUILD_TYPE MATCHES Debug)
     message("\nSetting Debug Options")
-    add_compile_definitions(DEBUG) 
+    add_compile_definitions(DEBUG)
     set(FLAGS_NOAH -g -O0 -fbacktrace -fbounds-check -ffree-form -ffree-line-length-none -fmax-errors=0 -fPIC -Wfatal-errors ${FLAGS_OPT})
     set(FLAGS_ALL -g -O0 -fbacktrace -fbounds-check -ffree-line-length-none -fmax-errors=0 -fPIC -Wfatal-errors -cpp ${FLAGS_OPT})
     set(FLAGS_CXX -g -O0 -fbounds-check -Wfatal-errors -std=c++17 ${FLAGS_OPT})
+elseif(CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
+    message("\nSetting RelWithDebInfo Options (-O2 -g, for VTune profiling)")
+    set(FLAGS_NOAH -O2 -g -ffree-form -ffree-line-length-none -fmax-errors=0 -fPIC -Wfatal-errors ${FLAGS_OPT})
+    set(FLAGS_ALL -O2 -g -ffree-line-length-none -fmax-errors=0 -fPIC -Wfatal-errors -cpp ${FLAGS_OPT})
+    set(FLAGS_CXX -O2 -g -Wfatal-errors -std=c++17 ${FLAGS_OPT})
 else()
-    message("\nSetting Release Options")
+    message("\nSetting Release Options (-O3)")
     set(FLAGS_NOAH -O3 -ffree-form -ffree-line-length-none -fmax-errors=0 -fPIC -Wfatal-errors ${FLAGS_OPT})
     set(FLAGS_ALL -O3 -ffree-line-length-none -fmax-errors=0 -fPIC -Wfatal-errors -cpp ${FLAGS_OPT})
     set(FLAGS_CXX -O3 -Wfatal-errors -std=c++17 ${FLAGS_OPT})
@@ -198,16 +203,16 @@ target_link_libraries(summa PUBLIC ${EXT_TARGETS} SUMMA_NOAHMP SUMMA_COMM)
 # Add -module TreeLB to enable GreedyLB, RefineLB, and other TreeLB-based load balancers
 # 
 # TOGGLE TRACING: Uncomment one of the following lines:
-# 
-# For PROFILING with Projections (tracing enabled - use +traceroot at runtime):
-set(CMAKE_CXX_LINK_EXECUTABLE
-    "${CHARM_CHARMC} -tracemode projections -module TreeLB <FLAGS> -o <TARGET> <OBJECTS> <LINK_LIBRARIES>"
-)
 #
-# For PRODUCTION/LOAD BALANCER TESTING (no tracing overhead):
+# For PROFILING with Projections (tracing enabled - use +traceroot at runtime):
 #set(CMAKE_CXX_LINK_EXECUTABLE
-#    "${CHARM_CHARMC} -module TreeLB <FLAGS> -o <TARGET> <OBJECTS> <LINK_LIBRARIES>"
+#    "${CHARM_CHARMC} -tracemode projections -module TreeLB <FLAGS> -o <TARGET> <OBJECTS> <LINK_LIBRARIES>"
 #)
+#
+# For PRODUCTION/BENCHMARKING (no tracing overhead):
+set(CMAKE_CXX_LINK_EXECUTABLE
+    "${CHARM_CHARMC} -module TreeLB <FLAGS> -o <TARGET> <OBJECTS> <LINK_LIBRARIES>"
+)
 
 add_executable(${EXEC_NAME} ${MAIN_SUMMA} ${CHARES_GLOBAL} 
                ${FILE_ACCESS_CHARE} ${JOB_CHARE} ${GRU_CHARE} ${SYS_INIT})

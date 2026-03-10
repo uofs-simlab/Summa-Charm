@@ -1,0 +1,17 @@
+module GruWorker {
+  extern module FileAccessChare;
+  extern module JobChare;
+  include "hru_chare_settings.hpp";
+  include "tolarance_settings.hpp";
+
+  array [1D] GruWorker {
+    entry GruWorker(int worker_id, int num_steps, HRUChareSettings hru_chare_settings,
+                    int num_output_steps, CkChareID file_access_chare, CkChareID parent);
+    entry void assignTask(int netcdf_index, int job_index, ToleranceSettings tolerance_settings,
+                          int dt_init_factor, bool default_tol);
+    entry void newForcingFile(int job_index, int num_forc_steps, int iFile);
+    entry void setNumStepsBeforeWrite(int job_index, int num_steps);
+    entry void setNumStepsBeforeWriteBatch(std::vector<int> job_indices, int num_steps);
+    entry void runHRU();
+  };
+};

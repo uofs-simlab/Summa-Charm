@@ -3,6 +3,7 @@
 #include "summa_chare.hpp"
 #include "job_chare.hpp"
 #include "gru_chare.hpp"
+#include "gru_worker.hpp"
 #include "file_access_chare.hpp"
 #include <cstring>
 #include <fstream>
@@ -115,4 +116,5 @@ public:
 #include "SummaChare.def.h"
 #include "JobChare.def.h"
 #include "GruChare.def.h"
+#include "GruWorker.def.h"
 #include "FileAccessChare.def.h"

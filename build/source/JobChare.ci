@@ -1,6 +1,7 @@
 module JobChare {
   extern module FileAccessChare;
   extern module GruChare;
+  extern module GruWorker;
   include "batch.hpp";
   include "job_chare_settings.hpp";
   include "file_access_chare_settings.hpp";
@@ -12,11 +13,13 @@ module JobChare {
                    CkChareID summa_chare_proxy);
     entry void handleGruChareError(int job_index, int timestep, int err_code, std::string err_msg);
     entry void notifyGruConstructed(int job_index);
-    entry void handleFinishedGRU(int job_index);
+    entry void handleFinishedGRU(int job_index, int worker_id);
     entry void handleGRUError(int err_code, int job_index, int timestep, std::string err_msg);
     entry void restartFailures();
-    entry void doneHRUJob(int job_index);
+    entry void doneHRUJob(int job_index, int worker_id);
+    entry void requestMoreWork(int worker_id);
     entry void forwardNewForcingFile(int job_index, int num_forc_steps, int iFile);
     entry void forwardSetNumStepsBeforeWrite(int job_index, int num_steps);
+    entry void forwardSetNumStepsBeforeWriteBatch(std::vector<int> job_indices, int num_steps);
   };
 }

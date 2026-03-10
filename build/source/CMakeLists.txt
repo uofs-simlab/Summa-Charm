@@ -10,6 +10,7 @@ set(CI_FILES
     ${CHARES_DIR}/JobChare.ci
     ${CHARES_DIR}/FileAccessChare.ci
     ${CHARES_DIR}/GruChare.ci
+    ${CHARES_DIR}/GruWorker.ci
     CACHE INTERNAL "CI_FILES")
 
 # Chares interface modules
@@ -89,6 +90,7 @@ set(JOB_CHARE
     CACHE INTERNAL "JOB_CHARE")
 set(GRU_CHARE
     ${GRU_CHARE_DIR}/gru_chare.cpp
+    ${GRU_CHARE_DIR}/gru_worker.cpp
     # ${GRU_CHARE_DIR}/gru_batch_chare.cpp
     CACHE INTERNAL "GRU_CHARE")
 set(HRU_CHARE

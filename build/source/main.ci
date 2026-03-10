@@ -2,6 +2,7 @@ mainmodule mainChare {
   extern module SummaChare;
   extern module JobChare;
   extern module GruChare;
+  extern module GruWorker;
   extern module FileAccessChare;
 
   

@@ -1,8 +1,10 @@
 #pragma once
 
+#include "pup_stl.h"
 #include "JobChare.decl.h"
 #include "FileAccessChare.decl.h"
 #include "GruChare.decl.h"
+#include "GruWorker.decl.h"
 #include "file_access_chare_settings.hpp" // For FileAccessChareSettings
 // #include "file_access_chare.hpp"
 // #include "gru_batch_chare.hpp"
@@ -19,6 +21,7 @@
 
 
 #include <chrono>
+#include <deque>
 #include <memory>
 #include <string>
 #include <vector>
@@ -41,7 +44,7 @@ private:
   int total_gru_to_construct_ = 0;
   CkChareID summa_chare_proxy_;
   CProxy_FileAccessChare file_access_chare_;
-  CProxy_GruChare gru_chare_array_; // Array proxy for GRU chares
+  CProxy_GruWorker gru_worker_array_;
 
   char hostname_[HOST_NAME_MAX];
 
@@ -80,9 +83,27 @@ private:
   int output_step_ = 1; // Index in the output structure
   int num_write_msgs_ = 0;
   bool da_paused_ = false;
-  
-  // Sequential execution tracking for chare arrays
-  int current_gru_index_ = 0;
+  std::vector<std::chrono::time_point<std::chrono::steady_clock>>
+      gru_start_times_;
+
+  int num_workers_ = 0;
+  int worker_prefetch_depth_effective_ = 1;
+  std::vector<int> job_to_worker_;
+  std::vector<int> worker_to_pe_;
+  std::vector<int> inflight_tasks_per_worker_;
+  std::deque<int> pending_jobs_global_;
+  std::vector<int> assigned_grus_per_pe_;
+  std::vector<int> completed_grus_per_pe_;
+  std::string pe_distribution_csv_path_;
+  bool pe_distribution_csv_ready_ = false;
+
+  void logPeGruDistribution(const char *label,
+                            const std::vector<int> &counts);
+  void appendPeGruDistributionCsv(const char *label,
+                                  const std::vector<int> &counts);
+  void enqueueJob(int job_index);
+  bool dequeueJobForWorker(int worker_id, int &job_index);
+  bool assignNextTask(int worker_id, bool ignore_prefetch_cap = false);
 
 public:
   // Simplified constructor - takes batch and the chare ID
@@ -94,8 +115,9 @@ public:
 
   void spawnGruChares();
   void notifyGruConstructed(int job_index);
-  void doneHRUJob(int job_index);
-  void handleFinishedGRU(int job_index);
+  void doneHRUJob(int job_index, int worker_id);
+  void requestMoreWork(int worker_id);
+  void handleFinishedGRU(int job_index, int worker_id = -1);
   void finalizeJob();
   void restartFailures();
   void handleGruChareError(int job_index, int timestep, int err_code,
@@ -107,7 +129,8 @@ public:
   // Array communication helper methods
   void forwardNewForcingFile(int job_index, int num_forc_steps, int iFile);
   void forwardSetNumStepsBeforeWrite(int job_index, int num_steps);
-  CkChareID getGruChareID(int job_index); // Helper to return a pseudo-chare ID for array element
+  void forwardSetNumStepsBeforeWriteBatch(std::vector<int> job_indices,
+                                          int num_steps);
 };
 
 

@@ -5,7 +5,7 @@
 class Logger {
   private:
     std::string log_file_;
-    bool enable_logging_;
+    bool enable_logging_ = false;
   public:
     Logger(const std::string log_file_name = "");
     ~Logger();
@@ -24,7 +24,7 @@ class ErrorLogger {
     std::string log_file_;
     std::string log_dir_;
     int attempt_ = 1;
-    bool enable_logging_;         
+    bool enable_logging_ = false;         
   public:
     ErrorLogger(const std::string error_log_file_name = "");
     ~ErrorLogger() {};
@@ -49,7 +49,7 @@ class SuccessLogger {
     std::string log_file_;
     std::string log_dir_;
     int attempt_ = 1;
-    bool enable_logging_;
+    bool enable_logging_ = false;
   public:
     SuccessLogger(const std::string success_log_file_name = "");
     ~SuccessLogger() {};
@@ -61,7 +61,8 @@ class SuccessLogger {
                   double abs_tol_temp_veg, double abs_tol_wat_veg,
                   double abs_tol_temp_soil_snow, double abs_tol_wat_snow,
                   double abs_tol_matric, double abs_tol_aquifr,
-                  bool default_tol);
+                  bool default_tol, double run_time_sec, int worker_id,
+                  int pe_id);
     // void logSuccess(int ref_gru, int indx_gru, int be_steps, double rel_tol, double abs_tolWat, double abs_tolNrg);
     void nextAttempt();
 };

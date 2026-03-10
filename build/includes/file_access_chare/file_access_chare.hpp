@@ -6,6 +6,7 @@
 // Include Charm++ generated headers (first, to resolve forward references)
 #include "FileAccessChare.decl.h"
 #include "GruChare.decl.h"
+#include "GruWorker.decl.h"
 
 // Regular includes
 #include <memory>
@@ -40,6 +41,12 @@ private:
   FileAccessChareSettings fa_settings_;
   CkChareID job_chare_proxy_;
 
+  // Direct routing to GruWorkers — avoids JobChare bottleneck on the hot I/O path
+  CkArrayID gru_worker_array_id_;
+  bool gru_worker_initialized_ = false;
+  int num_workers_in_pool_ = 0;
+  std::vector<int> job_to_worker_; // job_index → worker_id
+
   int start_gru_;
   int num_gru_;
   int num_hru_;
@@ -48,6 +55,10 @@ private:
   bool write_params_flag_ = true;
   std::unique_ptr<forcingFileContainer> forcing_files_;
   std::unique_ptr<OutputBuffer> output_buffer_;
+  int write_output_calls_ = 0;
+  int write_flushes_ = 0;
+  int write_resume_batches_ = 0;
+  int write_resume_jobs_ = 0;
 
   // Checkpointing variables
   int completed_checkpoints_ = 1;
@@ -69,6 +80,8 @@ public:
   void writeOutput(int index_gru, int gru_job_index);
   void writeRestartOutput(int gru, int gru_timestep, int gru_checkpoint,
                           int output_structure_index, int year, int month, int day, int hour);
+  void setGruWorkerProxy(CkArrayID gru_worker_id, int num_jobs, int num_workers);
+  void updateJobWorkerMapping(int job_index, int worker_id);
 };
 
 /*********************************************

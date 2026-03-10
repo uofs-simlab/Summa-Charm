@@ -2,8 +2,6 @@
 #include "JobChare.decl.h"
 #include "FileAccessChare.decl.h"
 
-// Migration constructor - required for Charm++ array elements
-// This will not actually be used since we don't enable load balancing
 GruChare::GruChare(CkMigrateMessage *msg) {}
 
 GruChare::GruChare(int netcdf_index, int job_index,
@@ -172,7 +170,7 @@ void GruChare::runHRU()
 void GruChare::doneHRU()
 {
     CkPrintf("GRU Chare caling doneHRU\n");
-    CProxy_JobChare(parent_).doneHRUJob(job_index_);
+    CProxy_JobChare(parent_).doneHRUJob(job_index_, CkMyPe());
 }
 
 void GruChare::handleErr(int err, std::unique_ptr<char[]> &message)

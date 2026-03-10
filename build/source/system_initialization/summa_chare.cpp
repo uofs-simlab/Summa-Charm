@@ -240,7 +240,16 @@ int SummaChare::readSettings(std::string config_file) {
           .value_or(1),
       getSettings<bool>(json_settings, "Job_Chare", "data_assimilation_mode")
           .value_or(false),
-      getSettings<int>(json_settings, "Job_Chare", "batch_size").value_or(10));
+      getSettings<int>(json_settings, "Job_Chare", "batch_size").value_or(10),
+      getSettings<int>(json_settings, "Job_Chare", "worker_pool_size")
+          .value_or(0),
+      getSettings<int>(json_settings, "Job_Chare", "worker_prefetch_depth")
+          .value_or(4),
+      getSettings<bool>(json_settings, "Job_Chare",
+                        "allow_worker_oversubscription")
+          .value_or(false),
+      getSettings<bool>(json_settings, "Job_Chare", "reserve_pe0_for_control")
+          .value_or(false));
 
   hru_chare_settings_ = HRUChareSettings(
     getSettings<bool>(json_settings, "HRU_Chare", "print_output")

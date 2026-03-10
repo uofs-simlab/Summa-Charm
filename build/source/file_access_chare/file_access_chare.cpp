@@ -1,6 +1,7 @@
 #include "file_access_chare.hpp"
 #include "FileAccessChare.decl.h"
-#include "JobChare.decl.h"        // For CProxy_JobChare
+#include "GruWorker.decl.h"       // For direct CProxy_GruWorker routing
+#include "JobChare.decl.h"        // For CProxy_JobChare (fallback path)
 #include "pup_stl.h"              // For STL serialization
 #include "settings_functions.hpp" // For FileAccessChareSettings
 
@@ -56,12 +57,46 @@ int FileAccessChare::initFileAccessChare(int file_gru, int num_hru)
   return num_steps_;
 }
 
+void FileAccessChare::setGruWorkerProxy(CkArrayID gru_worker_id,
+                                        int num_jobs, int num_workers)
+{
+  gru_worker_array_id_ = gru_worker_id;
+  gru_worker_initialized_ = true;
+  num_workers_in_pool_ = num_workers;
+  job_to_worker_.assign(static_cast<size_t>(num_jobs), -1);
+}
+
+void FileAccessChare::updateJobWorkerMapping(int job_index, int worker_id)
+{
+  if (job_index >= 0 &&
+      static_cast<size_t>(job_index) < job_to_worker_.size())
+  {
+    job_to_worker_[static_cast<size_t>(job_index)] = worker_id;
+  }
+}
+
 void FileAccessChare::accessForcing(int i_file, int gru_job_index)
 {
+  // Helper: send newForcingFile directly to the owning GruWorker when the
+  // mapping is known; fall back to JobChare forwarding otherwise.
+  auto notify_forcing = [&](int steps, int file_idx) {
+    const int wid =
+        (gru_job_index >= 0 &&
+         static_cast<size_t>(gru_job_index) < job_to_worker_.size())
+            ? job_to_worker_[static_cast<size_t>(gru_job_index)]
+            : -1;
+    if (gru_worker_initialized_ && wid >= 0) {
+      CProxy_GruWorker(gru_worker_array_id_)[wid].newForcingFile(
+          gru_job_index, steps, file_idx);
+    } else {
+      CProxy_JobChare(job_chare_proxy_)
+          .forwardNewForcingFile(gru_job_index, steps, file_idx);
+    }
+  };
+
   if (forcing_files_->allFilesLoaded())
   {
-    // Ask JobChare to forward the message to the GRU array
-    CProxy_JobChare(job_chare_proxy_).forwardNewForcingFile(gru_job_index, forcing_files_->getNumSteps(i_file), i_file);
+    notify_forcing(forcing_files_->getNumSteps(i_file), i_file);
     return;
   }
   auto err = forcing_files_->loadForcingFile(i_file, start_gru_, num_gru_);
@@ -73,10 +108,9 @@ void FileAccessChare::accessForcing(int i_file, int gru_job_index)
     return;
   }
 
-
   // Load files behind the scenes
   accessForcingInternal(i_file + 1);
-  CProxy_JobChare(job_chare_proxy_).forwardNewForcingFile(gru_job_index, forcing_files_->getNumSteps(i_file), i_file);
+  notify_forcing(forcing_files_->getNumSteps(i_file), i_file);
 }
 
 void FileAccessChare::accessForcingInternal(int i_file)
@@ -101,6 +135,7 @@ int FileAccessChare::getNumOutputSteps(int job_index)
 
 void FileAccessChare::writeOutput(int index_gru, int gru_job_index)
 {
+  write_output_calls_++;
   timing_info_.updateStartPoint("write_duration");
 
   auto update_status = output_buffer_->writeOutput(index_gru, gru_job_index);
@@ -122,9 +157,41 @@ void FileAccessChare::writeOutput(int index_gru, int gru_job_index)
     return;
   }
 
-  for (auto job_index : update_status.value()->job_indices_to_update)
-  {
-    CProxy_JobChare(job_chare_proxy_).forwardSetNumStepsBeforeWrite(job_index, update_status.value()->num_steps_update);
+  write_flushes_++;
+  write_resume_batches_++;
+  write_resume_jobs_ +=
+      static_cast<int>(update_status.value()->job_indices_to_update.size());
+
+  // Route resume messages directly to GruWorkers, grouped by worker_id.
+  if (gru_worker_initialized_ && num_workers_in_pool_ > 0) {
+    std::vector<std::vector<int>> jobs_by_worker(
+        static_cast<size_t>(num_workers_in_pool_));
+    std::vector<int> fallback_jobs;
+    for (int ji : update_status.value()->job_indices_to_update) {
+      const int wid =
+          (ji >= 0 && static_cast<size_t>(ji) < job_to_worker_.size())
+              ? job_to_worker_[static_cast<size_t>(ji)]
+              : -1;
+      if (wid >= 0 && wid < num_workers_in_pool_)
+        jobs_by_worker[static_cast<size_t>(wid)].push_back(ji);
+      else
+        fallback_jobs.push_back(ji);
+    }
+    for (int w = 0; w < num_workers_in_pool_; ++w) {
+      if (!jobs_by_worker[static_cast<size_t>(w)].empty())
+        CProxy_GruWorker(gru_worker_array_id_)[w].setNumStepsBeforeWriteBatch(
+            jobs_by_worker[static_cast<size_t>(w)],
+            update_status.value()->num_steps_update);
+    }
+    if (!fallback_jobs.empty())
+      CProxy_JobChare(job_chare_proxy_)
+          .forwardSetNumStepsBeforeWriteBatch(
+              fallback_jobs, update_status.value()->num_steps_update);
+  } else {
+    CProxy_JobChare(job_chare_proxy_)
+        .forwardSetNumStepsBeforeWriteBatch(
+            update_status.value()->job_indices_to_update,
+            update_status.value()->num_steps_update);
   }
 
   timing_info_.updateEndPoint("write_duration");
@@ -162,6 +229,7 @@ int FileAccessChare::restartFailures()
 
 void FileAccessChare::runFailure(int index_gru_job)
 {
+  write_output_calls_++;
   timing_info_.updateStartPoint("write_duration");
   auto update_status = output_buffer_->addFailedGRU(index_gru_job);
 
@@ -180,15 +248,45 @@ void FileAccessChare::runFailure(int index_gru_job)
     return;
   }
 
-  for (auto gru_job_index : update_status.value()->job_indices_to_update)
-  {
-    CProxy_JobChare(job_chare_proxy_).forwardSetNumStepsBeforeWrite(gru_job_index, update_status.value()->num_steps_update);
+  write_flushes_++;
+  write_resume_batches_++;
+  write_resume_jobs_ +=
+      static_cast<int>(update_status.value()->job_indices_to_update.size());
+
+  // Same direct routing as writeOutput
+  if (gru_worker_initialized_ && num_workers_in_pool_ > 0) {
+    std::vector<std::vector<int>> jobs_by_worker(
+        static_cast<size_t>(num_workers_in_pool_));
+    std::vector<int> fallback_jobs;
+    for (int ji : update_status.value()->job_indices_to_update) {
+      const int wid =
+          (ji >= 0 && static_cast<size_t>(ji) < job_to_worker_.size())
+              ? job_to_worker_[static_cast<size_t>(ji)]
+              : -1;
+      if (wid >= 0 && wid < num_workers_in_pool_)
+        jobs_by_worker[static_cast<size_t>(wid)].push_back(ji);
+      else
+        fallback_jobs.push_back(ji);
+    }
+    for (int w = 0; w < num_workers_in_pool_; ++w) {
+      if (!jobs_by_worker[static_cast<size_t>(w)].empty())
+        CProxy_GruWorker(gru_worker_array_id_)[w].setNumStepsBeforeWriteBatch(
+            jobs_by_worker[static_cast<size_t>(w)],
+            update_status.value()->num_steps_update);
+    }
+    if (!fallback_jobs.empty())
+      CProxy_JobChare(job_chare_proxy_)
+          .forwardSetNumStepsBeforeWriteBatch(
+              fallback_jobs, update_status.value()->num_steps_update);
+  } else {
+    CProxy_JobChare(job_chare_proxy_)
+        .forwardSetNumStepsBeforeWriteBatch(
+            update_status.value()->job_indices_to_update,
+            update_status.value()->num_steps_update);
   }
 
   timing_info_.updateEndPoint("write_duration");
 }
-
-
 
 std::tuple<double, double> FileAccessChare::finalize()
 {
@@ -196,9 +294,15 @@ std::tuple<double, double> FileAccessChare::finalize()
            "FILE_ACCESS_CHARE TIMING INFO RESULTS________________\n"
            "Total Read Duration = %f\n"
            "Total Write Duration = %f\n"
+           "Write Output Calls = %d\n"
+           "Write Flushes = %d\n"
+           "Resume Batches = %d\n"
+           "Resume Jobs = %d\n"
            "\n__________________________________________________\n",
            forcing_files_->getReadDuration(),
-           timing_info_.getDuration("write_duration").value_or(-1.0));
+           timing_info_.getDuration("write_duration").value_or(-1.0),
+           write_output_calls_, write_flushes_, write_resume_batches_,
+           write_resume_jobs_);
 
   output_buffer_.reset();
 

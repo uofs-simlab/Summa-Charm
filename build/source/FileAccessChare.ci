@@ -14,5 +14,9 @@ module FileAccessChare {
     entry void error(int err_code, std::string err_msg);
     entry void writeOutput(int index_gru, int gru_job_index);
     entry void writeRestartOutput(int gru, int gru_timestep, int gru_checkpoint, int output_structure_index, int year, int month, int day, int hour);
+    // Direct-routing setup: JobChare provides GruWorker array ID and mapping updates
+    // so FAC can reply directly to workers without bouncing through JobChare.
+    entry void setGruWorkerProxy(CkArrayID gru_worker_id, int num_jobs, int num_workers);
+    entry void updateJobWorkerMapping(int job_index, int worker_id);
   };
 };

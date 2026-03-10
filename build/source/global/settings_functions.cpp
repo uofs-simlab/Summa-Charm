@@ -16,7 +16,11 @@ void Settings::generateConfigFile() {
         {"file_manager_path", "/home/username/summa_file_manager"},
         {"max_run_attempts", 1},
         {"data_assimilation_mode", false},
-        {"batch_size", MISSING_INT}
+        {"batch_size", MISSING_INT},
+        {"worker_pool_size", 0},
+        {"worker_prefetch_depth", 1},
+        {"allow_worker_oversubscription", false},
+        {"reserve_pe0_for_control", false}
     };
     config_file["HRU_Chare"] = {
         {"print_output", true},
