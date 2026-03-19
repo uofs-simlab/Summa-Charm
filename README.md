@@ -1,16 +1,6 @@
 # SUMMA-Charm++
 
-A Charm++ parallel implementation of the SUMMA hydrological model, converted from the original CAF-based SUMMA-Chares.
-
-## 🎉 Project Status: **Reorganized & Core Components Working!**
-
-✅ **Complete project restructuring with modern CMake**  
-✅ **Core C++ components building successfully**  
-✅ **Professional development infrastructure**  
-⚠️ **Charm++ integration** (needs CkMarshall.decl.h fix)  
-⚠️ **SUMMA Fortran integration** (needs dependency resolution)  
-
-**👉 See [COMPLETION_SUMMARY.md](COMPLETION_SUMMARY.md) for detailed status and next steps.**
+A Charm++ parallel implementation of the SUMMA hydrological model.
 
 ## Overview
 
@@ -98,24 +88,6 @@ cmake .. \
 make -j$(nproc)
 ```
 
-## Configuration
-
-### SUMMA Integration
-The project is configured to use an external SUMMA installation located at:
-```
-/u1/pma753/Summa-Chares/build/summa
-```
-
-To use a different SUMMA installation, either:
-1. Modify the path in `scripts/build.sh`
-2. Set `SUMMA_ROOT` when running cmake
-3. Use the SUMMA submodule by setting `-DUSE_EXTERNAL_SUMMA=OFF`
-
-### Charm++ Integration
-The project expects Charm++ to be built in the `charm/` directory. Ensure you have:
-- `charm/bin/charmc` - Charm++ compiler
-- `charm/bin/charmrun` - Charm++ runtime
-
 ## Development
 
 ### Code Organization
@@ -123,68 +95,3 @@ The project expects Charm++ to be built in the `charm/` directory. Ensure you ha
 - **Charm++**: Charm++ specific chares, message handling, and parallel coordination
 - **Fortran**: SUMMA interface code and custom Fortran modules
 - **Utils**: Logging, timing, and utility functions
-
-### Adding New Features
-1. Place source files in appropriate `src/` subdirectory
-2. Place headers in corresponding `include/` subdirectory
-3. Update the relevant `CMakeLists.txt` file
-4. Rebuild with `./scripts/build.sh`
-
-## Converting from CAF to Charm++
-
-This project is a conversion from the original CAF-based SUMMA-Chares. Key differences:
-
-### Replaced Components
-- **CAF Chares** → **Charm++ Chares**
-- **CAF Message Passing** → **Charm++ Entry Methods**
-- **CAF Scheduler** → **Charm++ Runtime**
-
-### Architecture Changes
-- Distributed chare model using Charm++ chares
-- Asynchronous message passing via entry methods
-- Automatic load balancing through Charm++ runtime
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Charm++ not found**
-   - Ensure Charm++ is built in `charm/` directory
-   - Check that `charmc` and `charmrun` are executable
-
-2. **NetCDF not found**
-   - Install NetCDF development packages
-   - Set `NETCDF_ROOT` environment variable
-
-3. **SUMMA path errors**
-   - Verify SUMMA installation path
-   - Check that SUMMA source files exist
-
-4. **Fortran compilation errors**
-   - Ensure gfortran is installed and recent
-   - Check that NetCDF Fortran bindings are available
-
-## Performance
-
-### Running in Parallel
-```bash
-cd build
-../charm/bin/charmrun +p8 ./bin/summa-charm ++local \
-    -c ../scripts/config.json -m ../scripts/fileManager.txt
-```
-
-### Load Balancing
-Charm++ provides automatic load balancing. To enable:
-- Use `++lb` runtime option
-- Compile with load balancing strategies
-
-## Contributing
-
-1. Follow the existing code organization
-2. Add tests for new functionality
-3. Update documentation
-4. Ensure CMake build works cleanly
-
-## License
-
-This project maintains compatibility with SUMMA's licensing terms.
